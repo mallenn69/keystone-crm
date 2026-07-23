@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keystone - Life Insurance CRM</title>
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef1ef;
+    --surface: #ffffff;
+    --surface-2: #f6f8f7;
+    --border: #dde3e0;
+    --border-strong: #c8d1cd;
+    --ink: #14201c;
+    --ink-2: #4a5a54;
+    --ink-3: #7d8b85;
+    --sidebar: #132a26;
+    --sidebar-ink: #cfe0da;
+    --sidebar-ink-2: #7fa099;
+    --sidebar-active: #1d3d37;
+    --accent: #0d9488;
+    --accent-strong: #0b7d73;
+    --accent-soft: #d4ede9;
+    --shadow: 0 1px 2px rgba(19,42,38,.06), 0 4px 16px rgba(19,42,38,.06);
+    --shadow-lg: 0 8px 40px rgba(19,42,38,.16);
+    --radius: 10px;
+    --radius-sm: 7px;
+
+    --s-new: #64748b;      --s-new-bg: #eef1f5;
+    --s-contacted: #0891b2;--s-contacted-bg: #e0f3f8;
+    --s-appointment:#7c3aed;--s-appointment-bg:#efe8fd;
+    --s-quoted: #d97706;   --s-quoted-bg: #fbeeda;
+    --s-application:#0d9488;--s-application-bg:#d4ede9;
+    --s-won: #16a34a;      --s-won-bg: #dcf3e3;
+    --s-lost: #dc2626;     --s-lost-bg: #fbe2e2;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, "JetBrains Mono", "Roboto Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1512; --surface: #16211d; --surface-2: #1b2924;
+      --border: #263631; --border-strong: #33473f;
+      --ink: #e6efeb; --ink-2: #9db3ab; --ink-3: #6e847c;
+      --sidebar: #0d1a17; --sidebar-active: #17302b;
+      --accent: #19b3a4; --accent-strong: #22c3b3; --accent-soft: #123330;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.3);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,.5);
+      --s-new-bg:#20272e; --s-contacted-bg:#0c2b33; --s-appointment-bg:#241a3a;
+      --s-quoted-bg:#33260f; --s-application-bg:#123330; --s-won-bg:#0f2c1a; --s-lost-bg:#331617;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1512; --surface: #16211d; --surface-2: #1b2924;
+    --border: #263631; --border-strong: #33473f;
+    --ink: #e6efeb; --ink-2: #9db3ab; --ink-3: #6e847c;
+    --sidebar: #0d1a17; --sidebar-active: #17302b;
+    --accent: #19b3a4; --accent-strong: #22c3b3; --accent-soft: #123330;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.3);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,.5);
+    --s-new-bg:#20272e; --s-contacted-bg:#0c2b33; --s-appointment-bg:#241a3a;
+    --s-quoted-bg:#33260f; --s-application-bg:#123330; --s-won-bg:#0f2c1a; --s-lost-bg:#331617;
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1ef; --surface: #ffffff; --surface-2: #f6f8f7;
+    --border: #dde3e0; --border-strong: #c8d1cd;
+    --ink: #14201c; --ink-2: #4a5a54; --ink-3: #7d8b85;
+    --sidebar: #132a26; --sidebar-active: #1d3d37;
+    --accent: #0d9488; --accent-strong: #0b7d73; --accent-soft: #d4ede9;
+    --s-new-bg:#eef1f5; --s-contacted-bg:#e0f3f8; --s-appointment-bg:#efe8fd;
+    --s-quoted-bg:#fbeeda; --s-application-bg:#d4ede9; --s-won-bg:#dcf3e3; --s-lost-bg:#fbe2e2;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  h1,h2,h3 { margin: 0; text-wrap: balance; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; font-size: 14px; }
+  ::selection { background: var(--accent-soft); }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- shell ---------- */
+  .app { display: grid; grid-template-columns: 236px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--sidebar); color: var(--sidebar-ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 20px 18px 18px; }
+  .brand .glyph { width: 30px; height: 30px; flex: none; }
+  .brand-name { font-weight: 700; font-size: 16px; letter-spacing: .2px; color: #fff; outline: none; }
+  .brand-name:focus { text-decoration: underline dotted var(--sidebar-ink-2); }
+  .nav { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; }
+  .nav button { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; background: none; border: 0; color: var(--sidebar-ink); padding: 9px 11px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; }
+  .nav button svg { width: 17px; height: 17px; flex: none; opacity: .85; }
+  .nav button:hover { background: rgba(255,255,255,.05); }
+  .nav button.active { background: var(--sidebar-active); color: #fff; }
+  .nav button.active svg { opacity: 1; }
+  .nav .count { margin-left: auto; font-size: 11px; font-weight: 600; background: rgba(255,255,255,.1); padding: 1px 7px; border-radius: 20px; font-variant-numeric: tabular-nums; }
+  .sidebar-foot { margin-top: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,.07); }
+  .sidebar-foot button { background: rgba(255,255,255,.06); color: var(--sidebar-ink); border: 0; border-radius: var(--radius-sm); padding: 8px; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .sidebar-foot button:hover { background: rgba(255,255,255,.12); }
+  .sidebar-foot svg { width: 15px; height: 15px; }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 20; }
+  .topbar h1 { font-size: 19px; font-weight: 650; }
+  .topbar .sub { color: var(--ink-3); font-size: 13px; margin-top: 1px; }
+  .spacer { flex: 1; }
+  .content { padding: clamp(16px,2.4vw,26px) clamp(16px,3vw,30px) 64px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; background: var(--accent); color: #fff; border: 0; padding: 9px 15px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13.5px; box-shadow: var(--shadow); }
+  .btn:hover { background: var(--accent-strong); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); box-shadow: none; }
+  .btn.ghost:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .btn.sm { padding: 6px 11px; font-size: 12.5px; }
+  .btn.danger { background: var(--s-lost); }
+  .btn.danger:hover { filter: brightness(1.08); }
+
+  /* ---------- stat cards ---------- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 17px; box-shadow: var(--shadow); }
+  .stat .label { color: var(--ink-3); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .stat .val { font-size: 27px; font-weight: 700; margin-top: 7px; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+  .stat .val small { font-size: 14px; color: var(--ink-3); font-weight: 600; }
+
+  .panels { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px){ .panels { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--border); }
+  .card-head h3 { font-size: 14.5px; font-weight: 650; }
+  .card-body { padding: 6px 8px; }
+
+  /* ---------- table ---------- */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 12px; min-width: 240px; flex: 1; max-width: 380px; }
+  .search input { border: 0; background: none; outline: none; color: var(--ink); width: 100%; }
+  .search svg { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+  select.filter { background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink); border-radius: var(--radius-sm); padding: 8px 10px; font-weight: 500; }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--surface-2); position: sticky; top: 0; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--surface-2); }
+  .cell-name { font-weight: 600; }
+  .cell-sub { color: var(--ink-3); font-size: 12.5px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex: none; }
+  .with-avatar { display: flex; align-items: center; gap: 10px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .empty { text-align: center; padding: 54px 20px; color: var(--ink-3); }
+  .empty svg { width: 40px; height: 40px; opacity: .4; margin-bottom: 12px; }
+  .empty h3 { font-size: 16px; color: var(--ink-2); margin-bottom: 6px; }
+
+  /* ---------- pipeline ---------- */
+  .board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; }
+  .col { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); width: 264px; flex: none; display: flex; flex-direction: column; max-height: calc(100vh - 190px); }
+  .col-head { display: flex; align-items: center; gap: 8px; padding: 12px 13px; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+  .col-head .name { font-weight: 650; font-size: 13px; }
+  .col-head .k { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .col-head .stripe { width: 8px; height: 8px; border-radius: 2px; }
+  .col-sub { padding: 0 13px 10px; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .col-body { padding: 10px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; flex: 1; min-height: 60px; }
+  .col-body.drag-over { background: var(--accent-soft); border-radius: var(--radius-sm); }
+  .lead-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 12px; box-shadow: var(--shadow); cursor: grab; }
+  .lead-card:active { cursor: grabbing; }
+  .lead-card.dragging { opacity: .4; }
+  .lead-card .lc-name { font-weight: 650; font-size: 13.5px; }
+  .lead-card .lc-meta { color: var(--ink-3); font-size: 12px; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .lead-card .lc-money { font-family: var(--mono); font-weight: 600; color: var(--accent-strong); font-size: 12.5px; }
+  .lc-foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
+  .tag { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-2); }
+
+  /* ---------- calendar ---------- */
+  .cal-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .cal-head h2 { font-size: 18px; font-weight: 650; min-width: 190px; }
+  .cal-nav { display: flex; gap: 6px; }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn svg { width: 17px; height: 17px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .cal-dow { background: var(--surface-2); padding: 9px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); }
+  .cal-cell { background: var(--surface); min-height: 108px; padding: 7px 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+  .cal-cell:hover { background: var(--surface-2); }
+  .cal-cell.other { background: var(--surface-2); }
+  .cal-cell.other .cal-date { color: var(--ink-3); opacity: .5; }
+  .cal-date { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; align-self: flex-start; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+  .cal-cell.today .cal-date { background: var(--accent); color: #fff; }
+  .cal-evt { font-size: 11px; font-weight: 600; padding: 3px 6px; border-radius: 5px; background: var(--s-appointment-bg); color: var(--s-appointment); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-evt .t { font-variant-numeric: tabular-nums; opacity: .8; }
+
+  /* ---------- import ---------- */
+  .import-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-bottom: 18px; }
+  .import-step h3 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 9px; }
+  .step-n { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .import-step p.hint { color: var(--ink-3); font-size: 13px; margin: 2px 0 14px 31px; }
+  textarea.paste { width: 100%; min-height: 150px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 12px; background: var(--surface-2); color: var(--ink); font-family: var(--mono); font-size: 12.5px; resize: vertical; outline: none; }
+  textarea.paste:focus { border-color: var(--accent); }
+  .map-table { width: 100%; border-collapse: collapse; }
+  .map-table td, .map-table th { padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; }
+  .map-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-3); }
+  .map-table .src { font-family: var(--mono); font-size: 12px; }
+  .map-table select { background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; padding: 6px 8px; color: var(--ink); min-width: 190px; }
+  .map-table .sample { color: var(--ink-3); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+  /* ---------- drawer ---------- */
+  .overlay { position: fixed; inset: 0; background: rgba(19,42,38,.4); backdrop-filter: blur(2px); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(840px, 96vw); max-width: 96vw; background: var(--surface); box-shadow: var(--shadow-lg); z-index: 51; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 20px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 13px; }
+  .drawer-head .avatar { width: 44px; height: 44px; font-size: 16px; }
+  .drawer-head h2 { font-size: 18px; font-weight: 650; }
+  .drawer-head .close { margin-left: auto; background: none; border: 0; color: var(--ink-3); font-size: 24px; line-height: 1; padding: 0 4px; }
+  .drawer-head .close:hover { color: var(--ink); }
+  .drawer-body { overflow-y: auto; flex: 1; padding: 20px 22px; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-3); }
+  .field input, .field select, .field textarea { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-2); color: var(--ink); outline: none; width: 100%; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: var(--surface); }
+  .drawer-section { margin-top: 24px; }
+  .drawer-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .drawer-section h4::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .timeline { display: flex; flex-direction: column; gap: 12px; }
+  .tl-item { display: flex; gap: 11px; }
+  .tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex: none; position: relative; }
+  .tl-item:not(:last-child) .tl-dot::after { content: ""; position: absolute; top: 12px; left: 4px; width: 1px; height: calc(100% + 8px); background: var(--border); }
+  .tl-body { flex: 1; }
+  .tl-text { font-size: 13px; }
+  .tl-time { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .note-add { display: flex; gap: 8px; margin-bottom: 16px; }
+  .note-add input { flex: 1; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 11px; background: var(--surface-2); color: var(--ink); outline: none; }
+  .note-add input:focus { border-color: var(--accent); }
+  .drawer-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+  .stage-select-wrap { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; padding: 4px 22px 15px; border-bottom: 1px solid var(--border); }
+  .stage-btn { border: 1px solid var(--border-strong); background: var(--surface); padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+  .stage-btn:hover { border-color: var(--ink-3); }
+  .stage-btn.on { color: #fff; border-color: transparent; }
+
+  .qbar { display: flex; gap: 8px; padding: 14px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .qbtn { flex: 1; min-width: 74px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--ink); padding: 9px 10px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13px; }
+  .qbtn:hover { border-color: var(--ink-3); background: var(--surface); }
+  .qbtn svg { width: 16px; height: 16px; }
+  .qbtn.accent { background: var(--accent); color: #fff; border-color: transparent; }
+  .qbtn.accent:hover { background: var(--accent-strong); }
+
+  .drawer-cols { display: grid; grid-template-columns: 1.02fr .98fr; gap: 4px 28px; }
+  .drawer-cols .drawer-section:first-child { margin-top: 0; }
+  .dispo-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
+  .dispo { border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink-2); border-radius: 20px; padding: 5px 11px; font-size: 12px; font-weight: 600; }
+  .dispo:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+  .scratch { width: 100%; min-height: 128px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 11px 12px; background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 13.5px; line-height: 1.55; resize: vertical; outline: none; }
+  .scratch:focus { border-color: var(--accent); background: var(--surface); }
+  .autosave-note { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); }
+  .autosave-note .d { width: 6px; height: 6px; border-radius: 50%; background: var(--s-won); }
+  .appt-row { display: flex; align-items: center; gap: 10px; padding: 7px 6px; margin: 0 -6px; cursor: pointer; border-radius: 7px; }
+  .appt-row:hover { background: var(--surface-2); }
+  .followup-band { display: flex; align-items: center; gap: 10px; padding: 12px 22px; background: var(--surface-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .followup-band .fu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .followup-band .fu-label svg { width: 15px; height: 15px; color: var(--s-quoted); }
+  .followup-band input { border: 1px solid var(--border-strong); border-radius: 7px; padding: 7px 9px; background: var(--surface); color: var(--ink); outline: none; font-size: 13px; }
+  .followup-band input:focus { border-color: var(--accent); }
+  .followup-band input.fu-note { flex: 1; min-width: 130px; }
+  .fu-quick { display: flex; gap: 5px; flex-wrap: wrap; }
+  .fu-quick button { border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink-2); border-radius: 20px; padding: 5px 10px; font-size: 11.5px; font-weight: 600; }
+  .fu-quick button:hover { border-color: var(--accent); color: var(--accent-strong); }
+  .attn-row { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 8px; }
+  .attn-row:last-child { border-bottom: 0; }
+  .attn-row:hover { background: var(--surface-2); }
+  .attn-ico { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex: none; font-weight: 700; }
+  .attn-ico.fu { background: var(--s-quoted-bg); color: var(--s-quoted); }
+  .attn-ico.appt { background: var(--s-appointment-bg); color: var(--s-appointment); }
+  .fu-cell { font-variant-numeric: tabular-nums; }
+  .fu-cell.overdue { color: var(--s-lost); font-weight: 700; }
+  .toggle-btn { background: var(--surface); border: 1px solid var(--border-strong); color: var(--ink-2); border-radius: var(--radius-sm); padding: 8px 12px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 7px; }
+  .toggle-btn.on { background: var(--s-quoted-bg); border-color: var(--s-quoted); color: var(--s-quoted); }
+  @media (max-width: 700px){
+    .drawer-cols { grid-template-columns: 1fr; gap: 0; }
+    .drawer { width: 100vw; max-width: 100vw; }
+    .field-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ---------- modal ---------- */
+  .modal { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.open { display: flex; }
+  .modal-box { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); width: 460px; max-width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+  .modal-head h3 { font-size: 16px; font-weight: 650; }
+  .modal-head .close { margin-left: auto; background: none; border: 0; font-size: 22px; color: var(--ink-3); }
+  .modal-body { padding: 20px 22px; }
+  .modal-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--surface); padding: 11px 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13.5px; box-shadow: var(--shadow-lg); z-index: 80; opacity: 0; transition: all .25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .hidden { display: none !important; }
+  @media (max-width: 720px){
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: fixed; z-index: 40; transform: translateX(-100%); transition: transform .25s; width: 236px; }
+    .sidebar.open { transform: translateX(0); }
+    .content { padding: 18px 16px 60px; }
+    .topbar { padding: 14px 16px; }
+    .menu-toggle { display: inline-flex !important; }
+  }
+  .menu-toggle { display: none; }
+</style>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg class="glyph" viewBox="0 0 32 32" fill="none">
+        <path d="M16 2 L28 8 V16 C28 23 22.5 28.5 16 30 C9.5 28.5 4 23 4 16 V8 Z" fill="#0d9488"/>
+        <path d="M16 9 L21 13 V13 H11 Z" fill="#fff" opacity=".92"/>
+        <rect x="12" y="13" width="8" height="9" rx="1" fill="#fff" opacity=".92"/>
+      </svg>
+      <span class="brand-name" id="brandName" contenteditable="true" spellcheck="false">Keystone</span>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div style="display:flex;gap:8px;">
+        <button id="themeToggle" style="flex:1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19 19l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19 5l.7-.7"/><circle cx="12" cy="12" r="4"/></svg><span>Theme</span></button>
+        <button id="seedBtn" title="Load sample data" style="flex:none;width:38px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="exportBtn" style="flex:1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg><span>Backup</span></button>
+        <button id="restoreBtn" style="flex:1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg><span>Restore</span></button>
+      </div>
+      <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="icon-btn menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <div class="sub" id="viewSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="addLeadBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Add client</button>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================= data model ========================= */
+const STAGES = [
+  { id: 'new',         label: 'New Lead',    color: 'var(--s-new)',        bg: 'var(--s-new-bg)' },
+  { id: 'contacted',   label: 'Contacted',   color: 'var(--s-contacted)',  bg: 'var(--s-contacted-bg)' },
+  { id: 'appointment', label: 'Appt Set',    color: 'var(--s-appointment)',bg: 'var(--s-appointment-bg)' },
+  { id: 'quoted',      label: 'Quoted',      color: 'var(--s-quoted)',     bg: 'var(--s-quoted-bg)' },
+  { id: 'application', label: 'Application', color: 'var(--s-application)', bg: 'var(--s-application-bg)' },
+  { id: 'won',         label: 'Won',         color: 'var(--s-won)',        bg: 'var(--s-won-bg)' },
+  { id: 'lost',        label: 'Lost',        color: 'var(--s-lost)',       bg: 'var(--s-lost-bg)' },
+];
+const stageById = id => STAGES.find(s => s.id === id) || STAGES[0];
+
+const POLICY_TYPES = ['Term Life','Whole Life','IUL','Final Expense','Mortgage Protection','Universal Life','Annuity','Other'];
+
+const FIELDS = [
+  { key: 'firstName',      label: 'First Name' },
+  { key: 'lastName',       label: 'Last Name' },
+  { key: 'phone',          label: 'Phone' },
+  { key: 'email',          label: 'Email' },
+  { key: 'dob',            label: 'Date of Birth' },
+  { key: 'age',            label: 'Age' },
+  { key: 'address',        label: 'Address' },
+  { key: 'city',           label: 'City' },
+  { key: 'state',          label: 'State' },
+  { key: 'zip',            label: 'Zip' },
+  { key: 'leadSource',     label: 'Lead Source' },
+  { key: 'policyType',     label: 'Policy Type' },
+  { key: 'coverageAmount', label: 'Coverage Amount' },
+  { key: 'premium',        label: 'Premium' },
+  { key: 'beneficiary',    label: 'Beneficiary' },
+  { key: 'notes',          label: 'Notes' },
+];
+
+// synonyms for auto-mapping CSV headers -> field keys
+const SYNONYMS = {
+  firstName: ['first name','firstname','fname','first','given name','givenname'],
+  lastName:  ['last name','lastname','lname','last','surname','family name'],
+  fullName:  ['name','full name','fullname','contact','contact name','lead name','client name','insured'],
+  phone:     ['phone','mobile','cell','cell phone','phone number','telephone','tel','primary phone','number','contact number','phone1','mobile phone'],
+  email:     ['email','e-mail','email address','emailaddress','mail'],
+  dob:       ['dob','date of birth','birthdate','birth date','birthday','d.o.b','dateofbirth'],
+  age:       ['age'],
+  address:   ['address','street','street address','address1','mailing address'],
+  city:      ['city','town'],
+  state:     ['state','st','province','region','state/province'],
+  zip:       ['zip','zipcode','zip code','postal','postal code','postcode'],
+  leadSource:['source','lead source','leadsource','campaign','origin','vendor','list','lead type'],
+  policyType:['policy','policy type','policytype','product','coverage type','plan','product type','type of insurance'],
+  coverageAmount:['coverage','coverage amount','face amount','face value','benefit','benefit amount','sum assured','coverageamount','desired coverage'],
+  premium:   ['premium','monthly premium','monthly','payment','monthly payment','budget','premium amount'],
+  beneficiary:['beneficiary','beneficiaries'],
+  notes:     ['notes','note','comments','comment','remarks','description','memo','details'],
+};
+
+/* ========================= state / storage ========================= */
+const KEY = 'keystone_crm_v1';
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return { leads: [], appointments: [], brand: 'Keystone', theme: null, view: 'dashboard' };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ========================= helpers ========================= */
+const $ = sel => document.querySelector(sel);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fullName = l => [l.firstName, l.lastName].filter(Boolean).join(' ').trim() || '(no name)';
+const initials = l => ((l.firstName||' ')[0] + (l.lastName||' ')[0]).toUpperCase().trim() || '?';
+function money(v) {
+  if (v == null || v === '') return '';
+  const n = Number(String(v).replace(/[^0-9.\-]/g,''));
+  if (isNaN(n) || n === 0) return String(v).match(/[0-9]/) ? '$'+Number(String(v).replace(/[^0-9.]/g,'')).toLocaleString() : v;
+  return '$' + n.toLocaleString();
+}
+function relTime(ts){
+  const d = (Date.now()-ts)/1000;
+  if (d<60) return 'just now';
+  if (d<3600) return Math.floor(d/60)+'m ago';
+  if (d<86400) return Math.floor(d/3600)+'h ago';
+  if (d<604800) return Math.floor(d/86400)+'d ago';
+  return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function pill(stageId){
+  const s = stageById(stageId);
+  return `<span class="pill" style="background:${s.bg};color:${s.color}"><span class="dot" style="background:${s.color}"></span>${s.label}</span>`;
+}
+
+/* ========================= theme ========================= */
+function applyTheme(){
+  if (state.theme) document.documentElement.setAttribute('data-theme', state.theme);
+  else document.documentElement.removeAttribute('data-theme');
+}
+$('#themeToggle').onclick = () => {
+  const cur = state.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+  state.theme = cur === 'dark' ? 'light' : 'dark';
+  save(); applyTheme();
+};
+
+/* ========================= nav ========================= */
+const VIEWS = [
+  { id:'dashboard', label:'Dashboard', icon:'M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 21h8v-6H3z' },
+  { id:'leads',     label:'Clients',   icon:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75' },
+  { id:'pipeline',  label:'Pipeline',  icon:'M3 3v18h18M8 17V9M13 17V5M18 17v-4' },
+  { id:'calendar',  label:'Calendar',  icon:'M3 4h18v18H3zM3 10h18M8 2v4M16 2v4' },
+  { id:'import',    label:'Import CSV',icon:'M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2' },
+];
+function renderNav(){
+  $('#nav').innerHTML = VIEWS.map(v => {
+    let count = '';
+    if (v.id==='leads') count = `<span class="count">${state.leads.length}</span>`;
+    if (v.id==='calendar') count = `<span class="count">${state.appointments.length}</span>`;
+    return `<button data-view="${v.id}" class="${state.view===v.id?'active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${v.icon}"/></svg>
+      <span>${v.label}</span>${count}</button>`;
+  }).join('');
+  $('#nav').querySelectorAll('button').forEach(b => b.onclick = () => { go(b.dataset.view); $('#sidebar').classList.remove('open'); });
+}
+function go(view){ state.view = view; save(); render(); }
+
+/* ========================= render root ========================= */
+const TITLES = {
+  dashboard:['Dashboard','Your book at a glance'],
+  leads:['Clients','Everyone in your book'],
+  pipeline:['Pipeline','Drag clients between stages'],
+  calendar:['Calendar','Appointments & follow-ups'],
+  import:['Import Leads','Paste a CSV - fields map automatically'],
+};
+function render(){
+  renderNav();
+  const [t,s] = TITLES[state.view] || ['',''];
+  $('#viewTitle').textContent = t; $('#viewSub').textContent = s;
+  $('#addLeadBtn').classList.toggle('hidden', state.view==='import');
+  const c = $('#content');
+  if (state.view==='dashboard') c.innerHTML = viewDashboard();
+  else if (state.view==='leads') { c.innerHTML = viewLeads(); wireLeads(); }
+  else if (state.view==='pipeline') { c.innerHTML = viewPipeline(); wirePipeline(); }
+  else if (state.view==='calendar') { c.innerHTML = viewCalendar(); wireCalendar(); }
+  else if (state.view==='import') { c.innerHTML = viewImport(); wireImport(); }
+}
+
+/* ========================= dashboard ========================= */
+function viewDashboard(){
+  const L = state.leads;
+  const today = new Date(); const dstr = today.toISOString().slice(0,10);
+  const apptToday = state.appointments.filter(a => a.date === dstr).length;
+  const upcoming = [...state.appointments].filter(a => a.date >= dstr).sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time)).slice(0,6);
+  const won = L.filter(l=>l.stage==='won');
+  const wonPrem = won.reduce((s,l)=> s + Number(String(l.premium||0).replace(/[^0-9.]/g,''))||0, 0);
+  const active = L.filter(l=> l.stage!=='won' && l.stage!=='lost').length;
+
+  const funnel = STAGES.map(st => ({ st, n: L.filter(l=>l.stage===st.id).length }));
+  const maxN = Math.max(1, ...funnel.map(f=>f.n));
+
+  const recent = [...L].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+
+  const dueFollow = L.filter(l=> l.followUpDate && l.followUpDate <= dstr && l.stage!=='won' && l.stage!=='lost')
+    .sort((a,b)=> a.followUpDate.localeCompare(b.followUpDate));
+  const apptsToday = state.appointments.filter(a=>a.date===dstr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const dow = today.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
+  return `
+  <div class="stat-grid">
+    <div class="stat"><div class="label">Total Clients</div><div class="val">${L.length}</div></div>
+    <div class="stat"><div class="label">Active Pipeline</div><div class="val">${active}</div></div>
+    <div class="stat"><div class="label">Follow-ups Due</div><div class="val" style="${dueFollow.length?'color:var(--s-quoted)':''}">${dueFollow.length}</div></div>
+    <div class="stat"><div class="label">Appts Today</div><div class="val">${apptsToday.length}</div></div>
+    <div class="stat"><div class="label">Policies Won</div><div class="val">${won.length}</div></div>
+    <div class="stat"><div class="label">Premium (Won)</div><div class="val">$${wonPrem.toLocaleString()}<small>/mo</small></div></div>
+  </div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-head"><h3>Needs attention today</h3><div style="flex:1"></div><span class="cell-sub">${dow}</span></div>
+    <div class="card-body" style="padding:7px 10px;">
+      ${(dueFollow.length===0 && apptsToday.length===0)
+        ? emptyMini("You're all caught up &mdash; nothing due today. Set a follow-up date on a client to have them show up here.")
+        : dueFollow.map(l=>{ const overdue = l.followUpDate<dstr; return `<div class="attn-row" onclick="openLead('${l.id}')">
+            <span class="attn-ico fu"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4M3 3v4h4"/></svg></span>
+            <div style="flex:1;min-width:0;"><div class="cell-name">${esc(fullName(l))}</div><div class="cell-sub">${esc(l.followUpNote||'Follow up')}${l.phone?' &middot; <span class="num">'+esc(l.phone)+'</span>':''}</div></div>
+            <span class="pill" style="background:${overdue?'var(--s-lost-bg)':'var(--s-quoted-bg)'};color:${overdue?'var(--s-lost)':'var(--s-quoted)'}">${overdue?'Overdue':'Today'}</span>
+          </div>`; }).join('')
+        + apptsToday.map(a=>{ const l=state.leads.find(x=>x.id===a.leadId); return `<div class="attn-row" onclick="openLead('${l?l.id:''}')">
+            <span class="attn-ico appt"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div style="flex:1;min-width:0;"><div class="cell-name">${esc(a.title||'Appointment')}</div><div class="cell-sub">${l?esc(fullName(l)):'No client'} &middot; <span class="num">${esc(a.time||'')}</span></div></div>
+            <span class="pill" style="background:var(--s-appointment-bg);color:var(--s-appointment)">Appt</span>
+          </div>`; }).join('')}
+    </div>
+  </div>
+  <div class="panels">
+    <div class="card">
+      <div class="card-head"><h3>Pipeline breakdown</h3></div>
+      <div class="card-body" style="padding:16px 18px;">
+        ${L.length===0 ? emptyMini('No leads yet &mdash; import a CSV or add one to get started.') :
+        funnel.map(f=>`
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:11px;">
+            <div style="width:96px;font-size:12.5px;font-weight:600;color:var(--ink-2);">${f.st.label}</div>
+            <div style="flex:1;background:var(--surface-2);border-radius:6px;height:22px;overflow:hidden;">
+              <div style="height:100%;width:${(f.n/maxN)*100}%;min-width:${f.n?'26px':'0'};background:${f.st.color};border-radius:6px;transition:width .4s;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;font-size:11.5px;font-weight:700;">${f.n||''}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Upcoming appointments</h3><div class="spacer" style="flex:1"></div><button class="btn ghost sm" onclick="go('calendar')">Calendar</button></div>
+      <div class="card-body" style="padding:10px 14px;">
+        ${upcoming.length===0 ? emptyMini('No appointments scheduled.') :
+        upcoming.map(a=>{
+          const l = state.leads.find(x=>x.id===a.leadId);
+          const d = new Date(a.date+'T00:00');
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openLead('${l?l.id:''}')">
+            <div style="text-align:center;width:42px;flex:none;">
+              <div style="font-size:10.5px;font-weight:700;color:var(--s-appointment);text-transform:uppercase;">${d.toLocaleDateString(undefined,{month:'short'})}</div>
+              <div style="font-size:19px;font-weight:700;line-height:1;">${d.getDate()}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;font-size:13.5px;">${esc(a.title||'Appointment')}</div>
+              <div class="cell-sub">${l?esc(fullName(l)):'&mdash;'} &middot; <span class="num">${esc(a.time||'')}</span></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px;">
+    <div class="card-head"><h3>Recent leads</h3><div style="flex:1"></div><button class="btn ghost sm" onclick="go('leads')">View all</button></div>
+    <div class="card-body" style="padding:0;">
+      ${recent.length===0 ? emptyMini('Nothing here yet.') : `<div class="table-wrap" style="border:0;box-shadow:none;border-radius:0;">
+        <table><tbody>
+        ${recent.map(l=>`<tr onclick="openLead('${l.id}')">
+          <td><div class="with-avatar"><div class="avatar">${initials(l)}</div><div><div class="cell-name">${esc(fullName(l))}</div><div class="cell-sub">${esc(l.phone||l.email||'')}</div></div></div></td>
+          <td>${l.policyType?`<span class="cell-sub">${esc(l.policyType)}</span>`:''}</td>
+          <td class="num">${l.coverageAmount?money(l.coverageAmount):''}</td>
+          <td>${pill(l.stage)}</td>
+          <td class="cell-sub">${l.createdAt?relTime(l.createdAt):''}</td>
+        </tr>`).join('')}
+        </tbody></table></div>`}
+    </div>
+  </div>`;
+}
+function emptyMini(msg){ return `<div style="padding:26px 10px;text-align:center;color:var(--ink-3);font-size:13.5px;">${msg}</div>`; }
+
+/* ========================= leads table ========================= */
+let leadFilter = { q:'', stage:'all', source:'all', due:false };
+function viewLeads(){
+  const sources = [...new Set(state.leads.map(l=>l.leadSource).filter(Boolean))];
+  return `
+  <div class="toolbar">
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="leadSearch" placeholder="Search name, phone, email..." value="${esc(leadFilter.q)}"></div>
+    <select class="filter" id="stageFilter">
+      <option value="all">All stages</option>
+      ${STAGES.map(s=>`<option value="${s.id}" ${leadFilter.stage===s.id?'selected':''}>${s.label}</option>`).join('')}
+    </select>
+    <select class="filter" id="sourceFilter">
+      <option value="all">All sources</option>
+      ${sources.map(s=>`<option ${leadFilter.source===s?'selected':''}>${esc(s)}</option>`).join('')}
+    </select>
+    <button class="toggle-btn ${leadFilter.due?'on':''}" id="dueToggle"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4M3 3v4h4"/></svg>Due follow-up</button>
+    <div style="flex:1"></div>
+    <span class="cell-sub" id="leadCount"></span>
+  </div>
+  <div id="leadTable"></div>`;
+}
+function filteredLeads(){
+  const q = leadFilter.q.toLowerCase().trim();
+  const today = new Date().toISOString().slice(0,10);
+  return state.leads.filter(l=>{
+    if (leadFilter.stage!=='all' && l.stage!==leadFilter.stage) return false;
+    if (leadFilter.source!=='all' && l.leadSource!==leadFilter.source) return false;
+    if (leadFilter.due && !(l.followUpDate && l.followUpDate <= today && l.stage!=='won' && l.stage!=='lost')) return false;
+    if (q){
+      const hay = [l.firstName,l.lastName,l.phone,l.email,l.city,l.state,l.leadSource,l.policyType].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    if (leadFilter.due) return (a.followUpDate||'').localeCompare(b.followUpDate||'');
+    return (b.createdAt||0)-(a.createdAt||0);
+  });
+}
+function renderLeadTable(){
+  const rows = filteredLeads();
+  $('#leadCount').textContent = `${rows.length} of ${state.leads.length}`;
+  const el = $('#leadTable');
+  if (state.leads.length===0){
+    el.innerHTML = `<div class="table-wrap"><div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+      <h3>No leads yet</h3><div>Paste a CSV in the Import tab, or add a lead manually.</div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;"><button class="btn" onclick="go('import')">Import CSV</button><button class="btn ghost" onclick="openLead()">Add lead</button></div>
+    </div></div>`; return;
+  }
+  const todayStr = new Date().toISOString().slice(0,10);
+  const fuCell = l=>{
+    if (!l.followUpDate) return '<span class="cell-sub">&mdash;</span>';
+    const overdue = l.followUpDate < todayStr;
+    const dd = new Date(l.followUpDate+'T00:00');
+    return `<span class="fu-cell ${overdue?'overdue':''}">${dd.toLocaleDateString(undefined,{month:'short',day:'numeric'})}${overdue?' !':''}</span>`;
+  };
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Phone</th><th>State</th><th>Policy</th><th>Coverage</th><th>Premium</th><th>Follow-up</th><th>Stage</th></tr></thead>
+    <tbody>${rows.map(l=>`<tr onclick="openLead('${l.id}')">
+      <td><div class="with-avatar"><div class="avatar">${initials(l)}</div><div><div class="cell-name">${esc(fullName(l))}</div><div class="cell-sub">${esc(l.email||'')}</div></div></div></td>
+      <td class="num">${esc(l.phone||'')}</td>
+      <td>${esc(l.state||'')}</td>
+      <td class="cell-sub">${esc(l.policyType||'')}</td>
+      <td class="num">${l.coverageAmount?money(l.coverageAmount):''}</td>
+      <td class="num">${l.premium?money(l.premium):''}</td>
+      <td>${fuCell(l)}</td>
+      <td>${pill(l.stage)}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+function wireLeads(){
+  renderLeadTable();
+  $('#leadSearch').oninput = e => { leadFilter.q = e.target.value; renderLeadTable(); };
+  $('#stageFilter').onchange = e => { leadFilter.stage = e.target.value; renderLeadTable(); };
+  $('#sourceFilter').onchange = e => { leadFilter.source = e.target.value; renderLeadTable(); };
+  $('#dueToggle').onclick = e => { leadFilter.due = !leadFilter.due; e.currentTarget.classList.toggle('on', leadFilter.due); renderLeadTable(); };
+}
+
+/* ========================= pipeline (kanban) ========================= */
+function viewPipeline(){
+  return `<div class="board" id="board">${STAGES.map(st=>{
+    const items = state.leads.filter(l=>l.stage===st.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const prem = items.reduce((s,l)=> s + (Number(String(l.premium||0).replace(/[^0-9.]/g,''))||0), 0);
+    return `<div class="col" data-stage="${st.id}">
+      <div class="col-head"><span class="stripe" style="background:${st.color}"></span><span class="name">${st.label}</span><span class="k">${items.length}</span></div>
+      ${prem>0?`<div class="col-sub">$${prem.toLocaleString()}/mo premium</div>`:''}
+      <div class="col-body" data-stage="${st.id}">
+        ${items.map(l=>`<div class="lead-card" draggable="true" data-id="${l.id}" onclick="openLead('${l.id}')">
+          <div class="lc-name">${esc(fullName(l))}</div>
+          <div class="lc-meta">${l.policyType?esc(l.policyType):'&mdash;'}${l.coverageAmount?` &middot; <span class="lc-money">${money(l.coverageAmount)}</span>`:''}</div>
+          <div class="lc-foot">${l.leadSource?`<span class="tag">${esc(l.leadSource)}</span>`:''}${l.state?`<span class="tag">${esc(l.state)}</span>`:''}</div>
+        </div>`).join('')}
+      </div></div>`;
+  }).join('')}</div>`;
+}
+let dragId = null;
+function wirePipeline(){
+  const board = $('#board');
+  board.querySelectorAll('.lead-card').forEach(card=>{
+    card.addEventListener('dragstart', e=>{ dragId = card.dataset.id; card.classList.add('dragging'); e.stopPropagation(); });
+    card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
+  });
+  board.querySelectorAll('.col-body').forEach(body=>{
+    body.addEventListener('dragover', e=>{ e.preventDefault(); body.classList.add('drag-over'); });
+    body.addEventListener('dragleave', ()=> body.classList.remove('drag-over'));
+    body.addEventListener('drop', e=>{
+      e.preventDefault(); body.classList.remove('drag-over');
+      const stage = body.dataset.stage;
+      const lead = state.leads.find(l=>l.id===dragId);
+      if (lead && lead.stage!==stage){
+        lead.stage = stage;
+        lead.activity = lead.activity||[];
+        lead.activity.unshift({ ts:Date.now(), text:`Moved to <b>${stageById(stage).label}</b>`, type:'stage' });
+        save(); render();
+        toast(`${fullName(lead)} \u2192 ${stageById(stage).label}`);
+      }
+    });
+  });
+}
+
+/* ========================= calendar ========================= */
+let calRef = new Date();
+function viewCalendar(){
+  const y = calRef.getFullYear(), m = calRef.getMonth();
+  const first = new Date(y,m,1); const startDow = first.getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const prevDays = new Date(y,m,0).getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
+  const cells = [];
+  for (let i=startDow-1;i>=0;i--) cells.push({ d:prevDays-i, other:true, mo:m-1 });
+  for (let d=1;d<=daysInMonth;d++) cells.push({ d, other:false, mo:m });
+  while (cells.length % 7 !== 0 || cells.length < 42) { const last = cells[cells.length-1]; cells.push({ d:(last.other?last.d:0)+1, other:true, mo:m+1 }); if (cells.length>=42) break; }
+
+  const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monthName = calRef.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+
+  const cellHtml = cells.map(c=>{
+    const cy = c.mo<0?y-1:c.mo>11?y+1:y;
+    const cm = (c.mo+12)%12;
+    const dateStr = `${cy}-${String(cm+1).padStart(2,'0')}-${String(c.d).padStart(2,'0')}`;
+    const evts = state.appointments.filter(a=>a.date===dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    return `<div class="cal-cell ${c.other?'other':''} ${dateStr===todayStr?'today':''}" data-date="${dateStr}">
+      <span class="cal-date">${c.d}</span>
+      ${evts.slice(0,3).map(a=>{ const l=state.leads.find(x=>x.id===a.leadId);
+        return `<div class="cal-evt" title="${esc(a.title)}" data-appt="${a.id}"><span class="t">${esc(a.time||'')}</span> ${esc(l?fullName(l):a.title)}</div>`; }).join('')}
+      ${evts.length>3?`<div class="cell-sub" style="font-size:10.5px;padding-left:4px;">+${evts.length-3} more</div>`:''}
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="cal-head">
+    <h2>${monthName}</h2>
+    <div class="cal-nav">
+      <button class="icon-btn" id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="icon-btn" id="calToday" style="width:auto;padding:0 12px;font-weight:600;font-size:13px;">Today</button>
+      <button class="icon-btn" id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn" id="newApptBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>New appointment</button>
+  </div>
+  <div class="cal-grid">
+    ${dow.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+    ${cellHtml}
+  </div>`;
+}
+function wireCalendar(){
+  $('#calPrev').onclick = ()=>{ calRef.setMonth(calRef.getMonth()-1); render(); };
+  $('#calNext').onclick = ()=>{ calRef.setMonth(calRef.getMonth()+1); render(); };
+  $('#calToday').onclick = ()=>{ calRef = new Date(); render(); };
+  $('#newApptBtn').onclick = ()=> apptModal(null, new Date().toISOString().slice(0,10));
+  document.querySelectorAll('.cal-cell').forEach(c=> c.onclick = e=>{
+    if (e.target.closest('.cal-evt')) { const id = e.target.closest('.cal-evt').dataset.appt; const a = state.appointments.find(x=>x.id===id); apptModal(a); return; }
+    apptModal(null, c.dataset.date);
+  });
+}
+
+/* ========================= import ========================= */
+let importParsed = null; // {headers, rows, mapping}
+function viewImport(){
+  return `
+  <div class="import-step">
+    <h3><span class="step-n">1</span> Paste your leads</h3>
+    <p class="hint">Paste a CSV, or copy rows straight out of Excel / Google Sheets. Keep the header row on top if you have one &mdash; it makes mapping automatic.</p>
+    <textarea class="paste" id="pasteBox" placeholder="First Name,Last Name,Phone,Email,State,Policy Type,Coverage&#10;John,Carter,555-208-1190,john@email.com,TX,Term Life,250000&#10;Maria,Lopez,555-777-3321,maria@email.com,FL,Final Expense,15000"></textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button class="btn" id="parseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>Detect fields</button>
+      <button class="btn ghost" id="clearPaste">Clear</button>
+    </div>
+  </div>
+  <div id="mapStep"></div>`;
+}
+function wireImport(){
+  $('#parseBtn').onclick = doParse;
+  $('#clearPaste').onclick = ()=>{ $('#pasteBox').value=''; importParsed=null; $('#mapStep').innerHTML=''; };
+}
+// robust delimiter-aware line splitter (handles quotes)
+function splitLine(line, delim){
+  const out = []; let cur=''; let q=false;
+  for (let i=0;i<line.length;i++){
+    const ch = line[i];
+    if (q){
+      if (ch==='"'){ if (line[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=ch;
+    } else {
+      if (ch==='"') q=true;
+      else if (ch===delim){ out.push(cur); cur=''; }
+      else cur+=ch;
+    }
+  }
+  out.push(cur); return out.map(s=>s.trim());
+}
+function detectDelim(text){
+  const line = text.split(/\r?\n/)[0]||'';
+  const tabs = (line.match(/\t/g)||[]).length;
+  const commas = (line.match(/,/g)||[]).length;
+  const semis = (line.match(/;/g)||[]).length;
+  if (tabs >= commas && tabs >= semis && tabs>0) return '\t';
+  if (semis > commas) return ';';
+  return ',';
+}
+function looksLikeHeader(cells){
+  // header if no cell is purely numeric and cells are short-ish words
+  const numeric = cells.filter(c=> c!=='' && !isNaN(Number(c.replace(/[$,]/g,'')))).length;
+  const hasEmail = cells.some(c=>/@/.test(c));
+  return numeric === 0 && !hasEmail;
+}
+function normalize(s){ return s.toLowerCase().replace(/[_\-.]/g,' ').replace(/\s+/g,' ').trim(); }
+function guessField(header){
+  const h = normalize(header);
+  for (const [key, syns] of Object.entries(SYNONYMS)){
+    if (syns.includes(h)) return key;
+  }
+  // partial contains
+  for (const [key, syns] of Object.entries(SYNONYMS)){
+    if (syns.some(s=> h===s || h.includes(s) || s.includes(h))) return key;
+  }
+  return '';
+}
+function doParse(){
+  const text = $('#pasteBox').value.trim();
+  if (!text){ toast('Paste some rows first'); return; }
+  const delim = detectDelim(text);
+  const lines = text.split(/\r?\n/).filter(l=>l.trim()!=='');
+  let rows = lines.map(l=> splitLine(l, delim));
+  const width = Math.max(...rows.map(r=>r.length));
+  rows = rows.map(r=>{ while(r.length<width) r.push(''); return r; });
+
+  const hasHeader = looksLikeHeader(rows[0]);
+  let headers, dataRows;
+  if (hasHeader){ headers = rows[0]; dataRows = rows.slice(1); }
+  else { headers = rows[0].map((_,i)=>`Column ${i+1}`); dataRows = rows; }
+
+  const mapping = headers.map(h=> hasHeader ? guessField(h) : '');
+  importParsed = { headers, rows: dataRows, mapping, hasHeader };
+  renderMapStep();
+}
+function renderMapStep(){
+  const { headers, rows, mapping } = importParsed;
+  const mapped = mapping.filter(Boolean).length;
+  const options = `<option value="">&mdash; Skip this column &mdash;</option>` +
+    `<option value="fullName">Full Name (auto-split)</option>` +
+    FIELDS.map(f=>`<option value="${f.key}">${f.label}</option>`).join('');
+  const el = $('#mapStep');
+  el.innerHTML = `
+  <div class="import-step">
+    <h3><span class="step-n">2</span> Check the field mapping</h3>
+    <p class="hint">${mapped} of ${headers.length} columns matched automatically. Fix any that look off &mdash; pick the right field or skip the column.</p>
+    <div style="overflow-x:auto;"><table class="map-table">
+      <thead><tr><th>Your column</th><th>Sample data</th><th>Maps to</th></tr></thead>
+      <tbody>${headers.map((h,i)=>`<tr>
+        <td class="src">${esc(h)}</td>
+        <td class="sample">${esc((rows.find(r=>r[i])||[])[i]||'')}</td>
+        <td><select data-col="${i}">${options.replace(`value="${mapping[i]}"`,`value="${mapping[i]}" selected`)}</select></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>
+  <div class="import-step">
+    <h3><span class="step-n">3</span> Review & import</h3>
+    <p class="hint" id="importSummary"></p>
+    <div class="preview-wrap" id="previewWrap"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+      <button class="btn" id="doImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Import <span id="importN"></span> leads</button>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);cursor:pointer;"><input type="checkbox" id="dedupe" checked> Skip duplicates (same phone or email)</label>
+    </div>
+  </div>`;
+  el.querySelectorAll('select[data-col]').forEach(sel=> sel.onchange = e=>{
+    importParsed.mapping[Number(e.target.dataset.col)] = e.target.value; renderPreview();
+  });
+  $('#doImport').onclick = commitImport;
+  renderPreview();
+}
+function buildLeadsFromImport(){
+  const { headers, rows, mapping } = importParsed;
+  return rows.map(r=>{
+    const lead = { id:uid(), stage:'new', createdAt:Date.now(), activity:[{ts:Date.now(),text:'Imported from CSV',type:'system'}] };
+    mapping.forEach((field,i)=>{
+      if (!field) return;
+      const val = (r[i]||'').trim(); if (!val) return;
+      if (field==='fullName'){
+        const parts = val.split(/\s+/);
+        lead.firstName = parts.shift()||''; lead.lastName = parts.join(' ');
+      } else if (field==='notes'){
+        lead.notes = (lead.notes? lead.notes+' | ':'') + val;
+      } else lead[field] = val;
+    });
+    return lead;
+  }).filter(l=> l.firstName || l.lastName || l.phone || l.email);
+}
+function renderPreview(){
+  const leads = buildLeadsFromImport();
+  $('#importN').textContent = leads.length;
+  $('#importSummary').textContent = `${leads.length} valid leads ready. Preview of the first few:`;
+  const cols = ['firstName','lastName','phone','email','state','policyType','coverageAmount','premium'];
+  $('#previewWrap').innerHTML = `<table><thead><tr>${cols.map(c=>`<th>${FIELDS.find(f=>f.key===c).label}</th>`).join('')}</tr></thead>
+    <tbody>${leads.slice(0,6).map(l=>`<tr>${cols.map(c=>`<td class="${['coverageAmount','premium','phone'].includes(c)?'num':''}">${esc(l[c]||'')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function commitImport(){
+  let leads = buildLeadsFromImport();
+  if (leads.length===0){ toast('No valid leads to import'); return; }
+  if ($('#dedupe').checked){
+    const seen = new Set(state.leads.map(l=> (l.phone||'').replace(/\D/g,'') || (l.email||'').toLowerCase()).filter(Boolean));
+    const before = leads.length;
+    leads = leads.filter(l=>{
+      const k = (l.phone||'').replace(/\D/g,'') || (l.email||'').toLowerCase();
+      if (k && seen.has(k)) return false;
+      if (k) seen.add(k);
+      return true;
+    });
+    var skipped = before - leads.length;
+  }
+  state.leads = leads.concat(state.leads);
+  save();
+  $('#pasteBox') && ($('#pasteBox').value='');
+  importParsed = null;
+  toast(`Imported ${leads.length} lead${leads.length!==1?'s':''}${skipped?`, skipped ${skipped} dup${skipped!==1?'s':''}`:''}`);
+  go('leads');
+}
+
+/* ========================= lead drawer ========================= */
+let openLeadId = null;
+function openLead(id){
+  let lead;
+  if (id){ lead = state.leads.find(l=>l.id===id); if (!lead) return; }
+  else { lead = { id:uid(), stage:'new', createdAt:Date.now(), activity:[] }; state.leads.unshift(lead); save(); }
+  openLeadId = lead.id;
+  renderDrawer(lead);
+  $('#overlay').classList.add('open'); $('#drawer').classList.add('open');
+}
+function isEmptyLead(l){ return !(l.firstName||l.lastName||l.phone||l.email); }
+function closeDrawer(){
+  if (openLeadId){ const l=state.leads.find(x=>x.id===openLeadId); if (l && isEmptyLead(l) && (!l.activity||l.activity.length===0) && !l.scratch){ state.leads=state.leads.filter(x=>x.id!==l.id); save(); } }
+  $('#overlay').classList.remove('open'); $('#drawer').classList.remove('open'); openLeadId=null; render();
+}
+$('#overlay').onclick = closeDrawer;
+
+function renderDrawer(lead){
+  const d = $('#drawer');
+  const inF = (key,label,type='text',ph='')=>`<div class="field"><label>${label}</label><input data-f="${key}" type="${type}" value="${esc(lead[key]||'')}" placeholder="${ph}"></div>`;
+  const inFull = (key,label,type='text',ph='')=>`<div class="field full"><label>${label}</label><input data-f="${key}" type="${type}" value="${esc(lead[key]||'')}" placeholder="${ph}"></div>`;
+  const taFull = (key,label,ph='')=>`<div class="field full"><label>${label}</label><textarea data-f="${key}" rows="2" placeholder="${ph}">${esc(lead[key]||'')}</textarea></div>`;
+  const selF = (key,label,opts)=>`<div class="field"><label>${label}</label><select data-f="${key}"><option value="">&mdash;</option>${opts.map(o=>`<option ${lead[key]===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  const appts = state.appointments.filter(a=>a.leadId===lead.id).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const phoneDigits = (lead.phone||'').replace(/[^0-9+]/g,'');
+  const email = (lead.email||'').trim();
+  const todayStr = new Date().toISOString().slice(0,10);
+  const dispositions = ['No answer','Left voicemail','Interested','Not interested','Callback requested','Wrong number'];
+
+  d.innerHTML = `
+    <div class="drawer-head">
+      <div class="avatar">${initials(lead)}</div>
+      <div style="flex:1;min-width:0;">
+        <h2 id="dName">${esc(fullName(lead))}</h2>
+        <div class="cell-sub">${esc(lead.leadSource||'No source')}${lead.age?' &middot; age '+esc(lead.age):''}${lead.state?' &middot; '+esc(lead.state):''}</div>
+      </div>
+      <button class="close" onclick="closeDrawer()" title="Close">&times;</button>
+    </div>
+    <div class="stage-select-wrap" id="stageBtns">${STAGES.map(s=>`<button class="stage-btn ${lead.stage===s.id?'on':''}" data-stage="${s.id}" style="${lead.stage===s.id?`background:${s.color}`:''}">${s.label}</button>`).join('')}</div>
+    <div class="qbar">
+      ${phoneDigits?`<a class="qbtn" href="tel:${phoneDigits}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 11.5a16 16 0 006 6l1.7-1.2a2 2 0 012.1-.4c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>Call</a>
+      <a class="qbtn" href="sms:${phoneDigits}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9 9 0 01-4-.9L3 20l1.3-4a8.4 8.4 0 01-.8-3.6 8.5 8.5 0 018.5-8.4h.5a8.4 8.4 0 018 8z"/></svg>Text</a>`:''}
+      ${email?`<a class="qbtn" href="mailto:${esc(email)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>Email</a>`:''}
+      <button class="qbtn accent" id="qBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M12 13v5M9.5 15.5h5"/></svg>Book appt</button>
+    </div>
+    <div class="followup-band">
+      <span class="fu-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4M3 3v4h4"/></svg>Follow-up</span>
+      <input type="date" data-f="followUpDate" value="${esc(lead.followUpDate||'')}">
+      <input class="fu-note" data-f="followUpNote" placeholder="what to follow up on..." value="${esc(lead.followUpNote||'')}">
+      <div class="fu-quick">
+        <button data-fu="1">Tomorrow</button>
+        <button data-fu="3">+3 days</button>
+        <button data-fu="7">Next week</button>
+        <button data-fu="0">Clear</button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-cols">
+        <div>
+          <div class="drawer-section">
+            <h4>Call notes</h4>
+            <div class="dispo-row">${dispositions.map(x=>`<button class="dispo" data-dispo="${esc(x)}">${x}</button>`).join('')}</div>
+            <textarea id="scratch" class="scratch" placeholder="Type as you talk &mdash; saved automatically. Hit &ldquo;Log to timeline&rdquo; to stamp it as a dated note.">${esc(lead.scratch||'')}</textarea>
+            <div style="display:flex;gap:10px;margin-top:9px;align-items:center;flex-wrap:wrap;">
+              <button class="btn sm" id="logNote">Log to timeline</button>
+              <span class="autosave-note"><span class="d"></span> Autosaved</span>
+            </div>
+          </div>
+          <div class="drawer-section">
+            <h4>Appointments ${appts.length?`<span style="color:var(--ink-3)">(${appts.length})</span>`:''}</h4>
+            ${appts.length? appts.map(a=>{const dd=new Date(a.date+'T00:00');const past=a.date<todayStr;return `<div class="appt-row" data-appt="${a.id}">
+              <div class="pill" style="background:var(--s-appointment-bg);color:var(--s-appointment);${past?'opacity:.55':''}">${dd.toLocaleDateString(undefined,{month:'short',day:'numeric'})} &middot; <span class="num">${esc(a.time||'')}</span></div>
+              <span style="font-size:13px;">${esc(a.title||'Appointment')}</span></div>`;}).join('') : '<div class="cell-sub" style="margin-bottom:6px;">None yet.</div>'}
+            <button class="btn ghost sm" id="addAppt" style="margin-top:9px;">+ Schedule appointment</button>
+          </div>
+          <div class="drawer-section">
+            <h4>Activity</h4>
+            <div class="timeline" id="timeline">${renderTimeline(lead)}</div>
+          </div>
+        </div>
+        <div>
+          <div class="drawer-section">
+            <h4>Contact</h4>
+            <div class="field-grid">
+              ${inF('firstName','First name')}
+              ${inF('lastName','Last name')}
+              ${inF('phone','Phone','tel')}
+              ${inF('email','Email','email')}
+              ${inF('dob','Date of birth','text','MM/DD/YYYY')}
+              ${inF('age','Age')}
+              ${inFull('address','Street address')}
+              ${inF('city','City')}
+              ${inF('state','State')}
+              ${inF('zip','Zip')}
+              ${inFull('leadSource','Lead source')}
+            </div>
+          </div>
+          <div class="drawer-section">
+            <h4>Policy</h4>
+            <div class="field-grid">
+              ${selF('policyType','Policy type',POLICY_TYPES)}
+              ${inF('coverageAmount','Coverage amount')}
+              ${inF('premium','Monthly premium')}
+              ${inF('beneficiary','Beneficiary')}
+            </div>
+          </div>
+          <div class="drawer-section">
+            <h4>Application</h4>
+            <div class="field-grid">
+              ${selF('appStatus','Application status',['Not started','In progress','Submitted','Approved','Issued','Declined'])}
+              ${selF('tobacco','Tobacco',['No','Yes'])}
+              ${inF('height','Height')}
+              ${inF('weight','Weight')}
+              ${inF('carrier','Carrier')}
+              ${inF('policyNumber','Policy #')}
+              ${inF('doctor','Primary doctor')}
+              ${inF('draftDate','Draft date')}
+              ${taFull('medications','Medications')}
+              ${taFull('health','Health conditions / notes')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <span class="autosave-note" style="flex:1;"><span class="d"></span> All changes save automatically</span>
+      <button class="btn ghost" onclick="closeDrawer()">Close</button>
+      <button class="btn danger" id="delLead">Delete</button>
+    </div>`;
+
+  const bookHandler = ()=> apptModal(null, todayStr, lead.id);
+  $('#qBook').onclick = bookHandler;
+  $('#addAppt').onclick = bookHandler;
+  d.querySelectorAll('.appt-row').forEach(r=> r.onclick = ()=>{ const a=state.appointments.find(x=>x.id===r.dataset.appt); if(a) apptModal(a); });
+
+  // follow-up quick-set buttons
+  d.querySelectorAll('.fu-quick button').forEach(b=> b.onclick = ()=>{
+    const days = Number(b.dataset.fu);
+    const inp = d.querySelector('[data-f="followUpDate"]');
+    if (days===0){ inp.value=''; }
+    else { const dt=new Date(); dt.setDate(dt.getDate()+days); inp.value=dt.toISOString().slice(0,10); }
+    inp.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+
+  // stage buttons
+  d.querySelectorAll('.stage-btn').forEach(b=> b.onclick = ()=>{
+    const st = b.dataset.stage; if (lead.stage===st) return;
+    lead.stage = st; lead.activity = lead.activity||[]; lead.activity.unshift({ts:Date.now(),text:`Stage &rarr; <b>${stageById(st).label}</b>`,type:'stage'});
+    save(); renderDrawer(lead);
+  });
+
+  // disposition quick-log
+  d.querySelectorAll('.dispo').forEach(b=> b.onclick = ()=>{
+    lead.activity = lead.activity||[]; lead.activity.unshift({ts:Date.now(),text:`Call: ${esc(b.dataset.dispo)}`,type:'note'});
+    if (lead.stage==='new') lead.stage='contacted';
+    save(); $('#timeline').innerHTML=renderTimeline(lead);
+    d.querySelectorAll('.stage-btn').forEach(x=>{ const on=x.dataset.stage===lead.stage; x.classList.toggle('on',on); x.style.background = on? stageById(lead.stage).color : ''; });
+    toast(b.dataset.dispo);
+  });
+
+  // scratch autosave + log
+  const scratch = $('#scratch');
+  scratch.addEventListener('input', debounce(()=>{ lead.scratch = scratch.value; save(); }, 350));
+  $('#logNote').onclick = ()=>{
+    const v = scratch.value.trim(); if(!v){ toast('Nothing to log yet'); return; }
+    lead.activity = lead.activity||[]; lead.activity.unshift({ts:Date.now(),text:esc(v),type:'note'});
+    lead.scratch=''; scratch.value=''; save(); $('#timeline').innerHTML=renderTimeline(lead); toast('Logged to timeline');
+  };
+
+  // field autosave &mdash; nothing is ever lost
+  const saveFields = debounce(()=>{ d.querySelectorAll('[data-f]').forEach(inp=> lead[inp.dataset.f] = (inp.value||'').trim()); save(); }, 350);
+  d.querySelectorAll('[data-f]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      saveFields();
+      if (inp.dataset.f==='firstName' || inp.dataset.f==='lastName'){
+        const fn=d.querySelector('[data-f="firstName"]').value, ln=d.querySelector('[data-f="lastName"]').value;
+        $('#dName').textContent = [fn,ln].filter(Boolean).join(' ') || '(no name)';
+      }
+    });
+    inp.addEventListener('change', saveFields);
+  });
+
+  // delete (in-app confirm &mdash; native confirm() is blocked in the sandbox)
+  $('#delLead').onclick = ()=> confirmDialog('Delete client?', `This permanently removes <b>${esc(fullName(lead))}</b> and any appointments. This can't be undone.`, ()=>{
+    state.leads = state.leads.filter(l=>l.id!==lead.id);
+    state.appointments = state.appointments.filter(a=>a.leadId!==lead.id);
+    save(); openLeadId=null;
+    $('#overlay').classList.remove('open'); $('#drawer').classList.remove('open');
+    render(); toast('Client deleted');
+  });
+}
+function renderTimeline(lead){
+  const acts = lead.activity||[];
+  if (!acts.length) return '<div class="cell-sub">No activity yet.</div>';
+  return acts.map(a=>`<div class="tl-item"><div class="tl-dot" style="background:${a.type==='stage'?'var(--s-appointment)':a.type==='system'?'var(--ink-3)':'var(--accent)'}"></div>
+    <div class="tl-body"><div class="tl-text">${a.text}</div><div class="tl-time">${relTime(a.ts)}</div></div></div>`).join('');
+}
+
+/* ========================= modal / confirm ========================= */
+function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+function openModal(title, body, foot){ $('#modalTitle').textContent=title; $('#modalBody').innerHTML=body; $('#modalFoot').innerHTML=foot; $('#modal').classList.add('open'); }
+function closeModal(){ $('#modal').classList.remove('open'); }
+function confirmDialog(title, msg, onYes, yesLabel='Delete', danger=true){
+  openModal(title, `<p style="margin:0;color:var(--ink-2);line-height:1.55;">${msg}</p>`,
+    `<button class="btn ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn ${danger?'danger':''}" id="confirmYes">${yesLabel}</button>`);
+  $('#confirmYes').onclick = ()=>{ closeModal(); onYes(); };
+}
+function apptModal(appt, presetDate, presetLeadId){
+  const isNew = !appt;
+  const a = appt || { id:uid(), date:presetDate||new Date().toISOString().slice(0,10), time:'10:00', title:'', leadId:presetLeadId||'', notes:'' };
+  const leadOpts = `<option value="">&mdash; No client &mdash;</option>` + state.leads.slice().sort((x,y)=>fullName(x).localeCompare(fullName(y))).map(l=>`<option value="${l.id}" ${a.leadId===l.id?'selected':''}>${esc(fullName(l))}</option>`).join('');
+  openModal(isNew?'New appointment':'Edit appointment', `
+    <div class="field-grid">
+      <div class="field full"><label>Title</label><input id="aTitle" value="${esc(a.title)}" placeholder="e.g. Policy review call"></div>
+      <div class="field"><label>Date</label><input id="aDate" type="date" value="${a.date}"></div>
+      <div class="field"><label>Time</label><input id="aTime" type="time" value="${a.time}"></div>
+      <div class="field full"><label>Client</label><select id="aLead">${leadOpts}</select></div>
+      <div class="field full"><label>Notes</label><textarea id="aNotes" rows="2" style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 10px;background:var(--surface-2);color:var(--ink);outline:none;">${esc(a.notes)}</textarea></div>
+    </div>`,
+    `${!isNew?'<button class="btn danger" id="aDel" style="margin-right:auto;">Delete</button>':''}
+     <button class="btn ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn" id="aSave">${isNew?'Add appointment':'Save'}</button>`);
+  $('#aSave').onclick = ()=>{
+    a.title=$('#aTitle').value.trim()||'Appointment'; a.date=$('#aDate').value; a.time=$('#aTime').value; a.leadId=$('#aLead').value; a.notes=$('#aNotes').value.trim();
+    if (isNew) state.appointments.push(a);
+    // reflect on lead + stage bump
+    if (a.leadId){ const l=state.leads.find(x=>x.id===a.leadId); if(l){ l.activity=l.activity||[]; l.activity.unshift({ts:Date.now(),text:`Appointment set for ${a.date} ${a.time}`,type:'stage'}); if(l.stage==='new'||l.stage==='contacted') l.stage='appointment'; } }
+    save(); closeModal(); toast(isNew?'Appointment added':'Appointment saved');
+    if (openLeadId){ const l=state.leads.find(x=>x.id===openLeadId); if(l) renderDrawer(l); }
+    render();
+  };
+  const del = $('#aDel'); if (del) del.onclick = ()=>{ state.appointments = state.appointments.filter(x=>x.id!==a.id); save(); closeModal(); toast('Appointment deleted'); if(openLeadId){const l=state.leads.find(x=>x.id===openLeadId);if(l)renderDrawer(l);} render(); };
+}
+
+/* ========================= brand + top actions ========================= */
+$('#brandName').textContent = state.brand || 'Keystone';
+$('#brandName').addEventListener('blur', ()=>{ state.brand = $('#brandName').textContent.trim()||'Keystone'; document.title = state.brand+' - Life Insurance CRM'; save(); });
+$('#brandName').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#brandName').blur(); } });
+$('#addLeadBtn').onclick = ()=> openLead();
+$('#menuToggle').onclick = ()=> $('#sidebar').classList.toggle('open');
+
+/* ========================= backup / restore ========================= */
+$('#exportBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(state.brand||'keystone').toLowerCase().replace(/\s+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('Backup downloaded');
+};
+$('#restoreBtn').onclick = ()=> $('#restoreFile').click();
+$('#restoreFile').onchange = e=>{
+  const file = e.target.files[0]; if(!file){ return; }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    let data; try { data = JSON.parse(reader.result); } catch(err){ data = null; }
+    if (!data || !Array.isArray(data.leads)){ toast("That doesn't look like a Keystone backup"); e.target.value=''; return; }
+    confirmDialog('Restore this backup?', `This replaces your current data with the backup (<b>${data.leads.length}</b> clients, <b>${(data.appointments||[]).length}</b> appointments). Export a backup first if you're unsure.`, ()=>{
+      state = Object.assign({ leads:[], appointments:[], brand:'Keystone', theme:state.theme, view:'dashboard' }, data);
+      state.theme = state.theme || null;
+      save(); applyTheme();
+      $('#brandName').textContent = state.brand||'Keystone';
+      document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+      render(); toast('Backup restored');
+    }, 'Restore', false);
+    e.target.value='';
+  };
+  reader.readAsText(file);
+};
+
+/* ========================= sample data ========================= */
+function loadSample(){
+  const sample = [
+    ['Marcus','Bell','214-555-0182','marcus.bell@email.com','TX','Term Life','500000','62','Facebook','contacted'],
+    ['Angela','Nguyen','305-555-0147','a.nguyen@email.com','FL','Final Expense','20000','25','Aged List','new'],
+    ['Derrick','Owens','404-555-0199','downens@email.com','GA','IUL','250000','185','Referral','quoted'],
+    ['Sofia','Ramirez','602-555-0123','sofia.r@email.com','AZ','Mortgage Protection','350000','78','Direct Mail','appointment'],
+    ['James','Whitfield','615-555-0166','jwhit@email.com','TN','Whole Life','100000','120','Facebook','application'],
+    ['Priya','Shah','919-555-0134','priya.shah@email.com','NC','Term Life','750000','54','Google','new'],
+    ['Robert','Cole','702-555-0111','rcole@email.com','NV','Final Expense','15000','41','Aged List','won'],
+    ['Tanya','Brooks','216-555-0175','tbrooks@email.com','OH','IUL','300000','210','Referral','contacted'],
+  ];
+  const now = Date.now();
+  sample.forEach((s,i)=>{
+    state.leads.unshift({ id:uid(), firstName:s[0],lastName:s[1],phone:s[2],email:s[3],state:s[4],policyType:s[5],coverageAmount:s[6],premium:s[7],leadSource:s[8],stage:s[9], createdAt: now - i*3600000, activity:[{ts:now-i*3600000,text:'Lead created',type:'system'}] });
+  });
+  // a couple appointments
+  const d1=new Date(); const d2=new Date(); d2.setDate(d2.getDate()+2);
+  state.appointments.push({ id:uid(), title:'Policy review', date:d1.toISOString().slice(0,10), time:'14:00', leadId:state.leads[3].id, notes:'' });
+  state.appointments.push({ id:uid(), title:'Quote presentation', date:d2.toISOString().slice(0,10), time:'11:30', leadId:state.leads[2].id, notes:'' });
+  const setFU = (fn, offset, note)=>{ const l=state.leads.find(x=>x.firstName===fn); if(l){ const dt=new Date(); dt.setDate(dt.getDate()+offset); l.followUpDate=dt.toISOString().slice(0,10); l.followUpNote=note; } };
+  setFU('Marcus', -1, 'Call back about his term quote');
+  setFU('Angela', 0, 'Send final expense options');
+  setFU('Priya', 3, 'Follow up on 750k term quote');
+  save(); toast('Sample clients loaded'); render();
+}
+$('#seedBtn').onclick = ()=>{
+  if (state.leads.length) confirmDialog('Add sample data?', 'This drops 8 example clients and a couple of appointments on top of what you already have.', loadSample, 'Add samples', false);
+  else loadSample();
+};
+
+/* ========================= boot ========================= */
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeModal(); if($('#drawer').classList.contains('open')) closeDrawer(); } });
+applyTheme();
+document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+if (!state.view) state.view='dashboard';
+render();
+</script>
+
+</body>
+</html>
