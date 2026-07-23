@@ -293,6 +293,16 @@
   .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-3); }
   .field input, .field select, .field textarea { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-2); color: var(--ink); outline: none; width: 100%; }
   .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: var(--surface); }
+  .address-autocomplete-field { position:relative; }
+  .address-label-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .address-powered { color:var(--accent-strong); font-size:9px; font-weight:800; letter-spacing:.45px; text-transform:uppercase; }
+  .address-suggestions { display:none; position:absolute; z-index:80; top:100%; left:0; right:0; margin-top:5px; padding:6px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface); box-shadow:0 18px 45px rgba(10,25,20,.2); }
+  .address-suggestions.open { display:block; }
+  .address-suggestion { display:flex; align-items:flex-start; gap:9px; width:100%; padding:10px 11px; border-radius:8px; background:transparent; color:var(--ink); text-align:left; font-size:12.5px; line-height:1.35; }
+  .address-suggestion:hover, .address-suggestion:focus { background:var(--accent-soft); outline:none; }
+  .address-suggestion-pin { color:var(--accent); font-size:14px; line-height:1.2; }
+  .address-status { display:none; margin-top:4px; color:var(--ink-3); font-size:10.5px; }
+  .address-status.show { display:block; }
   .drawer-section { margin-top: 24px; }
   .drawer-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .drawer-section h4::after { content: ""; flex: 1; height: 1px; background: var(--border); }
@@ -868,6 +878,7 @@ Maria,Lopez,555-777-3321,maria@example.com,FL,Web,Final Expense,15000,5 ft 5 in,
 
 /* ========================= state / storage ========================= */
 const KEY = 'keystone_crm_v1';
+const GOOGLE_MAPS_KEY = 'AIzaSyAW8BHNcvaEd98RLA3_AtZ1wK8T1voPZSY';
 let state = load();
 
 function load() {
@@ -1996,6 +2007,100 @@ function stopCallTimer(){
   if (callTimerInterval) clearInterval(callTimerInterval);
   callTimerInterval = null;
 }
+let googlePlacesPromise = null;
+function loadGooglePlaces(){
+  if (window.google?.maps?.importLibrary) return Promise.resolve();
+  if (googlePlacesPromise) return googlePlacesPromise;
+  googlePlacesPromise = new Promise((resolve,reject)=>{
+    const callback = '__jarvisPlacesReady';
+    window[callback] = ()=>{ delete window[callback]; resolve(); };
+    const script=document.createElement('script');
+    script.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GOOGLE_MAPS_KEY)}&v=weekly&loading=async&callback=${callback}`;
+    script.async=true;
+    script.onerror=()=>reject(new Error('Google Places could not load'));
+    document.head.appendChild(script);
+  });
+  return googlePlacesPromise;
+}
+async function setupAddressAutocomplete(drawer,lead){
+  const input=drawer.querySelector('[data-f="address"]');
+  const list=drawer.querySelector('#addressSuggestions');
+  const status=drawer.querySelector('#addressStatus');
+  if (!input || !list) return;
+  input.setAttribute('autocomplete','street-address');
+  let newestRequest=0, sessionToken=null, suppress=false;
+  const clear=()=>{ list.replaceChildren(); list.classList.remove('open'); };
+  try {
+    await loadGooglePlaces();
+    const {AutocompleteSessionToken,AutocompleteSuggestion}=await google.maps.importLibrary('places');
+    sessionToken=new AutocompleteSessionToken();
+    const search=debounce(async()=>{
+      const query=input.value.trim();
+      const requestId=++newestRequest;
+      if (suppress || query.length<3){ clear(); return; }
+      status.textContent='Finding addresses…'; status.classList.add('show');
+      try {
+        const {suggestions}=await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input:query,
+          includedPrimaryTypes:['street_address'],
+          includedRegionCodes:['us'],
+          language:'en-US',
+          region:'us',
+          sessionToken
+        });
+        if (requestId!==newestRequest) return;
+        clear();
+        suggestions.slice(0,6).forEach(suggestion=>{
+          const prediction=suggestion.placePrediction;
+          if (!prediction) return;
+          const button=document.createElement('button');
+          button.type='button'; button.className='address-suggestion';
+          const pin=document.createElement('span'); pin.className='address-suggestion-pin'; pin.textContent='●';
+          const text=document.createElement('span'); text.textContent=prediction.text.toString();
+          button.append(pin,text);
+          button.onclick=async()=>{
+            suppress=true; clear(); status.textContent='Filling address…'; status.classList.add('show');
+            try {
+              const place=prediction.toPlace();
+              await place.fetchFields({fields:['addressComponents']});
+              let streetNumber='',route='',city='',region='',postal='',postalSuffix='';
+              (place.addressComponents||[]).forEach(component=>{
+                if(component.types.includes('street_number')) streetNumber=component.longText;
+                if(component.types.includes('route')) route=component.shortText;
+                if(component.types.includes('locality')) city=component.longText;
+                if(!city && component.types.includes('sublocality_level_1')) city=component.longText;
+                if(component.types.includes('administrative_area_level_1')) region=component.shortText;
+                if(component.types.includes('postal_code')) postal=component.longText;
+                if(component.types.includes('postal_code_suffix')) postalSuffix=component.longText;
+              });
+              const values={address:[streetNumber,route].filter(Boolean).join(' '),city,state:region,zip:postal+(postalSuffix?'-'+postalSuffix:'')};
+              Object.entries(values).forEach(([key,value])=>{
+                const field=drawer.querySelector(`[data-f="${key}"]`);
+                if (field && value){ field.value=value; lead[key]=value; }
+              });
+              save(); status.textContent='Address filled automatically'; toast('Address filled');
+              sessionToken=new AutocompleteSessionToken();
+            } catch(e){ status.textContent='Could not fill that address — you can still type it manually.'; }
+            setTimeout(()=>status.classList.remove('show'),2600);
+            suppress=false;
+          };
+          list.appendChild(button);
+        });
+        list.classList.toggle('open',list.children.length>0);
+        status.classList.remove('show');
+      } catch(e){
+        if (requestId!==newestRequest) return;
+        clear(); status.textContent='Address suggestions unavailable — manual entry still works.'; status.classList.add('show');
+      }
+    },300);
+    input.addEventListener('input',search);
+    input.addEventListener('focus',()=>{ if(list.children.length) list.classList.add('open'); });
+    input.addEventListener('blur',()=>setTimeout(clear,180));
+  } catch(e){
+    status.textContent='Address suggestions unavailable — manual entry still works.';
+    status.classList.add('show');
+  }
+}
 function openLead(id){
   let lead;
   if (id){ lead = state.leads.find(l=>l.id===id); if (!lead) return; }
@@ -2134,7 +2239,12 @@ function renderDrawer(lead){
               ${inF('age','Age')}
               ${selF('gender','Gender',['Male','Female','Other'])}
               ${inF('state','State')}
-              ${inFull('address','Street address')}
+              <div class="field full address-autocomplete-field">
+                <div class="address-label-row"><label>Street address</label><span class="address-powered">Google autofill</span></div>
+                <input data-f="address" value="${esc(lead.address||'')}" placeholder="Start typing an address…" autocomplete="street-address">
+                <div class="address-suggestions" id="addressSuggestions"></div>
+                <div class="address-status" id="addressStatus"></div>
+              </div>
               ${inF('city','City')}
               ${inF('zip','Zip')}
               ${inFull('leadSource','Lead source')}
@@ -2293,6 +2403,7 @@ function renderDrawer(lead){
     });
     inp.addEventListener('change', saveFields);
   });
+  setupAddressAutocomplete(d,lead);
 
   // tidy-ups on blur: format the phone, fill age from DOB
   const phoneInp = d.querySelector('[data-f="phone"]');
