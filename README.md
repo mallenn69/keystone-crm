@@ -2,11 +2,11 @@
 
 A clean, single-file life-insurance CRM for working leads end to end:
 
-- **Import** leads by pasting a CSV (or copying rows from Excel/Google Sheets) — columns auto-map to fields.
+- **Import** leads by uploading or dragging in a CSV, pasting rows from Excel/Google Sheets, reviewing automatic field mapping, and skipping duplicates before saving.
 - **Clients** table with search, stage/source filters, and a "due follow-up" view.
 - **Pipeline** drag-and-drop kanban with per-stage premium totals.
-- **Client profile** built for live calls: quick call/text/email, disposition chips, autosaving notes, follow-up scheduling, inline appointment booking, and an activity timeline.
-- **Calendar** for appointments.
+- **Full-screen call workspace** with quick call/text/email actions, a large autosaving note canvas, disposition shortcuts, editable contact/application details, follow-up scheduling, appointments, and activity history.
+- **Calendar** with a detailed weekly time grid, current-time indicator, overlapping-event layout, quick scheduling, month view, and weekly agenda.
 - **Dashboard** with a "needs attention today" view (overdue/today follow-ups + appointments).
 - **Backup / Restore** your whole book as a JSON file.
 
