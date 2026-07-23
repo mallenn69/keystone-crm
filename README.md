@@ -1,4 +1,4 @@
-# Keystone — Life Insurance CRM
+# Jarvis Life — Life Insurance CRM
 
 A clean, single-file life-insurance CRM for working leads end to end:
 

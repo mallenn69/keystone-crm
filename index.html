@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Keystone - Life Insurance CRM</title>
+<title>Jarvis Life - Life Insurance CRM</title>
 </head>
 <body>
 <style>
@@ -500,14 +500,35 @@
   .dashboard-stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
   .dashboard-stats .stat { position:relative; overflow:hidden; }
   .dashboard-stats .stat::after { content:""; position:absolute; width:52px; height:52px; right:-18px; bottom:-20px; border-radius:50%; background:var(--accent-soft); opacity:.65; }
+  .stats-hero { position:relative; overflow:hidden; padding:28px 30px; margin-bottom:18px; border-radius:18px; color:#effff9; background:linear-gradient(125deg,#101c18,#163d31); border:1px solid rgba(71,218,172,.24); box-shadow:0 18px 52px rgba(7,42,32,.2); }
+  .stats-hero::after { content:""; position:absolute; width:320px; height:320px; right:-90px; top:-190px; border-radius:50%; background:rgba(55,226,174,.15); filter:blur(18px); }
+  .stats-kicker { color:#8ee9cc; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
+  .stats-net { margin:8px 0 5px; font-size:clamp(40px,5vw,62px); line-height:1; font-weight:800; letter-spacing:-3px; color:#6dffca; text-shadow:0 0 30px rgba(67,227,179,.25); font-variant-numeric:tabular-nums; }
+  .stats-net.negative { color:#ff9a9a; text-shadow:none; }
+  .stats-hero p { margin:0; color:#a9c9bd; font-size:13px; }
+  .stats-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+  .cost-layout { display:grid; grid-template-columns:minmax(320px,.72fr) minmax(480px,1.28fr); gap:18px; align-items:start; }
+  .cost-form { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .cost-form .full { grid-column:1/-1; }
+  .cost-entry { display:grid; grid-template-columns:100px 1fr auto auto; gap:14px; align-items:center; padding:13px 18px; border-bottom:1px solid var(--border); }
+  .cost-entry:last-child { border-bottom:0; }
+  .cost-entry-source { font-size:13.5px; font-weight:750; }
+  .cost-entry-note { color:var(--ink-3); font-size:11.5px; margin-top:2px; }
+  .cost-entry-amount { font:750 14px var(--mono); }
+  .cost-delete { width:30px; height:30px; border-radius:8px; color:var(--ink-3); background:transparent; }
+  .cost-delete:hover { color:var(--s-lost); background:var(--s-lost-bg); }
   @media (max-width:1000px) {
     .revenue-hero { grid-template-columns:1fr; }
     .dashboard-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .cost-layout { grid-template-columns:1fr; }
   }
   @media (max-width:600px) {
     .revenue-hero { padding:22px 20px; }
     .revenue-breakdown { grid-template-columns:1fr 1fr; }
     .revenue-value { letter-spacing:-2px; }
+    .stats-grid { grid-template-columns:1fr; }
+    .cost-entry { grid-template-columns:78px 1fr auto; }
+    .cost-entry-amount { grid-column:2; }
   }
 
   /* Interactive sales scripts. */
@@ -681,7 +702,7 @@
         <path d="M16 9 L21 13 V13 H11 Z" fill="#fff" opacity=".92"/>
         <rect x="12" y="13" width="8" height="9" rx="1" fill="#fff" opacity=".92"/>
       </svg>
-      <span class="brand-name" id="brandName" contenteditable="true" spellcheck="false">Keystone</span>
+      <span class="brand-name" id="brandName" contenteditable="true" spellcheck="false">Jarvis Life</span>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="sidebar-foot">
@@ -731,7 +752,7 @@
   <div class="auth-box">
     <div class="auth-brand">
       <svg viewBox="0 0 32 32" fill="none" width="34" height="34"><path d="M16 2 L28 8 V16 C28 23 22.5 28.5 16 30 C9.5 28.5 4 23 4 16 V8 Z" fill="#0d9488"/><path d="M16 9 L21 13 V13 H11 Z" fill="#fff" opacity=".92"/><rect x="12" y="13" width="8" height="9" rx="1" fill="#fff" opacity=".92"/></svg>
-      <span>Keystone</span>
+      <span>Jarvis Life</span>
     </div>
     <h2 id="authTitle">Welcome back</h2>
     <p class="auth-sub">Sign in to reach your book from any device.</p>
@@ -852,9 +873,15 @@ let state = load();
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const saved=JSON.parse(raw);
+      if (!saved.brand || saved.brand==='Keystone') saved.brand='Jarvis Life';
+      saved.leadCosts=Array.isArray(saved.leadCosts)?saved.leadCosts:[];
+      saved.scripts=Array.isArray(saved.scripts)?saved.scripts:[];
+      return saved;
+    }
   } catch(e){}
-  return { leads: [], appointments: [], brand: 'Keystone', theme: null, view: 'dashboard' };
+  return { leads: [], appointments: [], leadCosts:[], scripts:[], brand: 'Jarvis Life', theme: null, view: 'dashboard' };
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} scheduleCloudSave(); }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -942,7 +969,9 @@ function normalizeState(s){
   return {
     leads: Array.isArray(s.leads) ? s.leads : [],
     appointments: Array.isArray(s.appointments) ? s.appointments : [],
-    brand: s.brand || 'Keystone',
+    leadCosts: Array.isArray(s.leadCosts) ? s.leadCosts : [],
+    scripts: Array.isArray(s.scripts) ? s.scripts : [],
+    brand: (!s.brand || s.brand==='Keystone') ? 'Jarvis Life' : s.brand,
     theme: (s.theme === undefined ? null : s.theme),
     view: s.view || 'dashboard'
   };
@@ -1032,6 +1061,7 @@ const VIEWS = [
   { id:'pipeline',  label:'Pipeline',  icon:'M3 3v18h18M8 17V9M13 17V5M18 17v-4' },
   { id:'calendar',  label:'Calendar',  icon:'M3 4h18v18H3zM3 10h18M8 2v4M16 2v4' },
   { id:'scripts',   label:'Scripts',   icon:'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5' },
+  { id:'stats',     label:'Stats',     icon:'M4 19V9M10 19V5M16 19v-7M22 19V3' },
   { id:'import',    label:'Import CSV',icon:'M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2' },
 ];
 function renderNav(){
@@ -1058,6 +1088,7 @@ const TITLES = {
   pipeline:['Pipeline','Drag clients between stages'],
   calendar:['Calendar','Appointments & follow-ups'],
   scripts:['Scripts','Personalized talk tracks for every conversation'],
+  stats:['Stats','Lead economics and projected profitability'],
   import:['Import Leads','Upload, map, and review before saving'],
 };
 function render(){
@@ -1072,7 +1103,75 @@ function render(){
   else if (state.view==='pipeline') { c.innerHTML = viewPipeline(); wirePipeline(); }
   else if (state.view==='calendar') { c.innerHTML = viewCalendar(); wireCalendar(); }
   else if (state.view==='scripts') { c.innerHTML = viewScripts(); wireScripts(); }
+  else if (state.view==='stats') { c.innerHTML = viewStats(); wireStats(); }
   else if (state.view==='import') { c.innerHTML = viewImport(); wireImport(); }
+}
+
+/* ========================= stats / lead economics ========================= */
+function statsCommission(){
+  return state.leads.filter(l=>l.stage==='won').reduce((sum,l)=>{
+    const monthly=Number(String(l.premium||0).replace(/[^0-9.]/g,''))||0;
+    return sum+(monthly*12*.75);
+  },0);
+}
+function leadCostTotal(){
+  return (Array.isArray(state.leadCosts)?state.leadCosts:[]).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+}
+function viewStats(){
+  state.leadCosts=Array.isArray(state.leadCosts)?state.leadCosts:[];
+  const commission=statsCommission(), spend=leadCostTotal(), net=commission-spend;
+  const cpl=state.leads.length?spend/state.leads.length:0;
+  const won=state.leads.filter(l=>l.stage==='won').length;
+  const costPerWon=won?spend/won:0;
+  const sources=[...new Set(state.leads.map(l=>l.leadSource).filter(Boolean))].sort();
+  const costs=[...state.leadCosts].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
+  return `
+    <section class="stats-hero">
+      <div class="stats-kicker">Projected net profit</div>
+      <div class="stats-net ${net<0?'negative':''}">${net<0?'-':''}$${Math.abs(Math.round(net)).toLocaleString()}</div>
+      <p>Projected commission from Won policies minus recorded lead spend.</p>
+    </section>
+    <div class="stats-grid">
+      <div class="stat"><div class="label">Projected commission</div><div class="val" style="color:var(--accent-strong)">$${Math.round(commission).toLocaleString()}</div></div>
+      <div class="stat"><div class="label">Total lead spend</div><div class="val">$${Math.round(spend).toLocaleString()}</div></div>
+      <div class="stat"><div class="label">Cost per imported lead</div><div class="val">$${cpl.toFixed(2)}</div><div class="cell-sub">${state.leads.length} total clients</div></div>
+    </div>
+    <div class="cost-layout">
+      <div class="card">
+        <div class="card-head"><h3>Add lead cost</h3></div>
+        <div class="card-body">
+          <div class="cost-form">
+            <div class="field"><label>Date</label><input id="costDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+            <div class="field"><label>Amount spent</label><input id="costAmount" inputmode="decimal" placeholder="$500"></div>
+            <div class="field full"><label>Lead source / vendor</label><input id="costSource" list="costSources" placeholder="e.g. Facebook, Referral partner"><datalist id="costSources">${sources.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
+            <div class="field full"><label>Note</label><input id="costNote" placeholder="e.g. July aged-lead batch"></div>
+            <button class="btn full" id="addCost">Record lead spend</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Lead spend history</h3><div style="flex:1"></div><span class="cell-sub">${won?`$${costPerWon.toFixed(2)} cost per Won policy`:''}</span></div>
+        <div>${costs.length?costs.map(x=>`<div class="cost-entry">
+          <div class="cell-sub">${x.date?new Date(x.date+'T00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'2-digit'}):'No date'}</div>
+          <div><div class="cost-entry-source">${esc(x.source||'Uncategorized')}</div>${x.note?`<div class="cost-entry-note">${esc(x.note)}</div>`:''}</div>
+          <div class="cost-entry-amount">$${Number(x.amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          <button class="cost-delete" data-cost-id="${x.id}" title="Delete lead cost">&times;</button>
+        </div>`).join(''):`<div class="empty" style="padding:48px 20px;"><h3>No lead costs recorded</h3><div>Add your first purchase to calculate projected net profit.</div></div>`}</div>
+      </div>
+    </div>`;
+}
+function wireStats(){
+  $('#addCost').onclick=()=>{
+    const raw=$('#costAmount').value.replace(/[^0-9.-]/g,'');
+    const amount=Number(raw);
+    if (!(amount>0)){ toast('Enter a lead cost greater than zero'); $('#costAmount').focus(); return; }
+    state.leadCosts=Array.isArray(state.leadCosts)?state.leadCosts:[];
+    state.leadCosts.push({id:uid(),date:$('#costDate').value,amount,source:$('#costSource').value.trim(),note:$('#costNote').value.trim(),createdAt:Date.now()});
+    save(); render(); toast('Lead cost recorded');
+  };
+  document.querySelectorAll('[data-cost-id]').forEach(b=>b.onclick=()=>{
+    state.leadCosts=state.leadCosts.filter(x=>x.id!==b.dataset.costId); save(); render(); toast('Lead cost removed');
+  });
 }
 
 /* ========================= dashboard ========================= */
@@ -1647,7 +1746,7 @@ function wireImport(){
   $('#parseBtn').onclick = doParse;
   $('#clearPaste').onclick = clearImportSource;
   $('#useSample').onclick = ()=>{ box.value=IMPORT_SAMPLE; setSourceMeta('Example loaded · 2 client rows'); box.focus(); };
-  $('#downloadSample').onclick = ()=> downloadFile('keystone-import-template.csv', IMPORT_SAMPLE, 'text/csv');
+  $('#downloadSample').onclick = ()=> downloadFile('jarvis-life-import-template.csv', IMPORT_SAMPLE, 'text/csv');
   file.onchange = ()=> file.files[0] && readImportFile(file.files[0]);
   ['dragenter','dragover'].forEach(name=> zone.addEventListener(name,e=>{ e.preventDefault(); zone.classList.add('dragging'); }));
   ['dragleave','drop'].forEach(name=> zone.addEventListener(name,e=>{ e.preventDefault(); zone.classList.remove('dragging'); }));
@@ -2264,8 +2363,8 @@ function apptModal(appt, presetDate, presetLeadId, presetTime){
 }
 
 /* ========================= brand + top actions ========================= */
-$('#brandName').textContent = state.brand || 'Keystone';
-$('#brandName').addEventListener('blur', ()=>{ state.brand = $('#brandName').textContent.trim()||'Keystone'; document.title = state.brand+' - Life Insurance CRM'; save(); });
+$('#brandName').textContent = state.brand || 'Jarvis Life';
+$('#brandName').addEventListener('blur', ()=>{ state.brand = $('#brandName').textContent.trim()||'Jarvis Life'; document.title = state.brand+' - Life Insurance CRM'; save(); });
 $('#brandName').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#brandName').blur(); } });
 $('#addLeadBtn').onclick = ()=> openLead();
 $('#menuToggle').onclick = ()=> $('#sidebar').classList.toggle('open');
@@ -2295,7 +2394,7 @@ $('#exportBtn').onclick = ()=>{
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${(state.brand||'keystone').toLowerCase().replace(/\s+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `${(state.brand||'jarvis-life').toLowerCase().replace(/\s+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast('Backup downloaded');
 };
@@ -2305,13 +2404,13 @@ $('#restoreFile').onchange = e=>{
   const reader = new FileReader();
   reader.onload = ()=>{
     let data; try { data = JSON.parse(reader.result); } catch(err){ data = null; }
-    if (!data || !Array.isArray(data.leads)){ toast("That doesn't look like a Keystone backup"); e.target.value=''; return; }
+    if (!data || !Array.isArray(data.leads)){ toast("That doesn't look like a Jarvis Life backup"); e.target.value=''; return; }
     confirmDialog('Restore this backup?', `This replaces your current data with the backup (<b>${data.leads.length}</b> clients, <b>${(data.appointments||[]).length}</b> appointments). Export a backup first if you're unsure.`, ()=>{
-      state = Object.assign({ leads:[], appointments:[], brand:'Keystone', theme:state.theme, view:'dashboard' }, data);
+      state = Object.assign({ leads:[], appointments:[], leadCosts:[], scripts:[], brand:'Jarvis Life', theme:state.theme, view:'dashboard' }, data);
       state.theme = state.theme || null;
       save(); applyTheme();
-      $('#brandName').textContent = state.brand||'Keystone';
-      document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+      $('#brandName').textContent = state.brand||'Jarvis Life';
+      document.title = (state.brand||'Jarvis Life') + ' - Life Insurance CRM';
       render(); toast('Backup restored');
     }, 'Restore', false);
     e.target.value='';
@@ -2394,7 +2493,7 @@ async function onSignedIn(user){
   hideAuth();
   await loadCloud();
   applyTheme();
-  document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+  document.title = (state.brand||'Jarvis Life') + ' - Life Insurance CRM';
   if (!state.view) state.view='dashboard';
   render();
 }
@@ -2428,7 +2527,7 @@ if (sb){
 } else {
   // Cloud library unavailable — fall back to local-only so the app still works
   hideAuth(); applyTheme();
-  document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+  document.title = (state.brand||'Jarvis Life') + ' - Life Insurance CRM';
   if (!state.view) state.view='dashboard';
   render();
 }
