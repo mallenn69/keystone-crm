@@ -299,6 +299,24 @@
   .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--surface); padding: 11px 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13.5px; box-shadow: var(--shadow-lg); z-index: 80; opacity: 0; transition: all .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .sync-pill { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--ink-3); white-space:nowrap; }
+  .sync-pill .sync-dot { width:7px; height:7px; border-radius:50%; background:var(--ink-3); flex:none; }
+  #signOutBtn svg { width:15px; height:15px; }
+  .auth-screen { position:fixed; inset:0; z-index:100; background:var(--bg); display:none; align-items:center; justify-content:center; padding:20px; }
+  .auth-screen.open { display:flex; }
+  .auth-box { width:100%; max-width:360px; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); padding:30px 28px; }
+  .auth-brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; color:var(--ink); margin-bottom:20px; }
+  .auth-box h2 { font-size:21px; font-weight:650; margin-bottom:5px; }
+  .auth-sub { color:var(--ink-3); font-size:13.5px; margin:0 0 20px; }
+  .auth-field { display:flex; flex-direction:column; gap:5px; margin-bottom:13px; }
+  .auth-field label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-3); }
+  .auth-field input { border:1px solid var(--border-strong); border-radius:var(--radius-sm); padding:10px 12px; background:var(--surface-2); color:var(--ink); outline:none; font-size:14px; }
+  .auth-field input:focus { border-color:var(--accent); background:var(--surface); }
+  .auth-submit { width:100%; justify-content:center; padding:11px; font-size:14.5px; margin-top:6px; }
+  .auth-error { display:none; background:var(--s-lost-bg); color:var(--s-lost); font-size:12.5px; font-weight:500; padding:9px 11px; border-radius:var(--radius-sm); margin-bottom:12px; line-height:1.45; }
+  .auth-toggle { text-align:center; font-size:13px; color:var(--ink-3); margin-top:16px; }
+  .auth-toggle a { color:var(--accent); font-weight:600; text-decoration:none; }
+
   .hidden { display: none !important; }
   @media (max-width: 720px){
     .app { grid-template-columns: 1fr; }
@@ -332,6 +350,8 @@
         <button id="restoreBtn" style="flex:1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg><span>Restore</span></button>
       </div>
       <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
+      <button id="signOutBtn" style="margin-top:2px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 17l5-5-5-5M21 12H9M12 19H6a2 2 0 01-2-2V7a2 2 0 012-2h6"/></svg><span>Sign out</span></button>
+      <div id="userEmail" style="font-size:10.5px;color:var(--sidebar-ink-2);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
     </div>
   </aside>
 
@@ -343,6 +363,7 @@
         <div class="sub" id="viewSub"></div>
       </div>
       <div class="spacer"></div>
+      <span class="sync-pill" id="syncStatus"></span>
       <button class="btn" id="addLeadBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Add client</button>
     </div>
     <div class="content" id="content"></div>
@@ -362,6 +383,23 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="authScreen" class="auth-screen open">
+  <div class="auth-box">
+    <div class="auth-brand">
+      <svg viewBox="0 0 32 32" fill="none" width="34" height="34"><path d="M16 2 L28 8 V16 C28 23 22.5 28.5 16 30 C9.5 28.5 4 23 4 16 V8 Z" fill="#0d9488"/><path d="M16 9 L21 13 V13 H11 Z" fill="#fff" opacity=".92"/><rect x="12" y="13" width="8" height="9" rx="1" fill="#fff" opacity=".92"/></svg>
+      <span>Keystone</span>
+    </div>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="auth-sub">Sign in to reach your book from any device.</p>
+    <div class="auth-field"><label>Email</label><input id="authEmail" type="email" autocomplete="username" placeholder="you@email.com"></div>
+    <div class="auth-field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Your password"></div>
+    <div id="authError" class="auth-error"></div>
+    <button id="authSubmit" class="btn auth-submit">Sign in</button>
+    <div class="auth-toggle" id="authToggleText"></div>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
 <script>
 /* ========================= data model ========================= */
 const STAGES = [
@@ -428,8 +466,73 @@ function load() {
   } catch(e){}
   return { leads: [], appointments: [], brand: 'Keystone', theme: null, view: 'dashboard' };
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} scheduleCloudSave(); }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ========================= Supabase cloud sync ========================= */
+const SUPABASE_URL = 'https://fjdfosyozeuvingvodqi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqZGZvc3lvemV1dmluZ3ZvZHFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MjU3NjIsImV4cCI6MjEwMDQwMTc2Mn0.f6vl1bm08ejIPAwo3gqCo3BECUYuNP_WJdWL5WVHm9c';
+let sb = null;
+try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } }); }
+catch(e){ console.error('Supabase failed to initialize — running in local-only mode.', e); }
+let currentUser = null;
+let _cloudT = null;
+
+function setSync(status){
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const map = {
+    saved:   ['Saved to cloud','var(--s-won)'],
+    pending: ['Saving…','var(--ink-3)'],
+    offline: ['Offline — saved on device','var(--s-quoted)'],
+  };
+  const [txt,color] = map[status] || ['',''];
+  el.innerHTML = txt ? `<span class="sync-dot" style="background:${color}"></span>${txt}` : '';
+}
+function scheduleCloudSave(){
+  if (!currentUser || !sb) return;
+  clearTimeout(_cloudT);
+  setSync('pending');
+  _cloudT = setTimeout(cloudSaveNow, 800);
+}
+async function cloudSaveNow(){
+  if (!currentUser || !sb) return;
+  try {
+    const { error } = await sb.from('crm_state').upsert({ user_id: currentUser.id, data: state, updated_at: new Date().toISOString() });
+    setSync(error ? 'offline' : 'saved');
+    if (error) console.warn('Cloud save error:', error.message);
+  } catch(e){ setSync('offline'); console.warn('Cloud save failed:', e); }
+}
+function normalizeState(s){
+  s = s || {};
+  return {
+    leads: Array.isArray(s.leads) ? s.leads : [],
+    appointments: Array.isArray(s.appointments) ? s.appointments : [],
+    brand: s.brand || 'Keystone',
+    theme: (s.theme === undefined ? null : s.theme),
+    view: s.view || 'dashboard'
+  };
+}
+async function loadCloud(){
+  setSync('pending');
+  try {
+    const { data, error } = await sb.from('crm_state').select('data').eq('user_id', currentUser.id).maybeSingle();
+    if (error) throw error;
+    if (data && data.data){
+      state = normalizeState(data.data);
+    } else {
+      // first sign-in for this account: seed the cloud from any local data, else start empty
+      state = normalizeState(load());
+      await cloudSaveNow();
+    }
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+    setSync('saved');
+  } catch(e){
+    console.warn('Cloud load failed — using local cache.', e.message||e);
+    state = normalizeState(load());
+    setSync('offline');
+  }
+}
 
 /* ========================= helpers ========================= */
 const $ = sel => document.querySelector(sel);
@@ -1252,12 +1355,87 @@ $('#seedBtn').onclick = ()=>{
   else loadSample();
 };
 
-/* ========================= boot ========================= */
+/* ========================= boot + auth ========================= */
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeModal(); if($('#drawer').classList.contains('open')) closeDrawer(); } });
-applyTheme();
-document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
-if (!state.view) state.view='dashboard';
-render();
+
+const authScreen = document.getElementById('authScreen');
+let authMode = 'signin';
+function showAuth(){ authScreen.classList.add('open'); }
+function hideAuth(){ authScreen.classList.remove('open'); }
+function authError(msg){ const e=document.getElementById('authError'); e.textContent=msg||''; e.style.display = msg?'block':'none'; }
+function setAuthMode(m){
+  authMode = m;
+  document.getElementById('authTitle').textContent = m==='signup' ? 'Create your account' : 'Welcome back';
+  document.getElementById('authSubmit').textContent = m==='signup' ? 'Create account' : 'Sign in';
+  document.getElementById('authToggleText').innerHTML = m==='signup'
+    ? 'Already have an account? <a href="#" id="authToggle">Sign in</a>'
+    : 'First time here? <a href="#" id="authToggle">Create an account</a>';
+  document.getElementById('authToggle').onclick = ev=>{ ev.preventDefault(); setAuthMode(m==='signup'?'signin':'signup'); };
+  authError('');
+}
+async function submitAuth(){
+  if (!sb){ authError('Cloud is unavailable right now. Try again in a moment.'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if (!email || !password){ authError('Enter your email and password.'); return; }
+  if (authMode==='signup' && password.length < 6){ authError('Use a password of at least 6 characters.'); return; }
+  const btn = document.getElementById('authSubmit'); btn.disabled=true; const orig=btn.textContent; btn.textContent='Please wait…';
+  try {
+    if (authMode==='signup'){
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (!data.session){ authError('Account created — check your email to confirm, then sign in.'); setAuthMode('signin'); }
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+  } catch(e){ authError(e.message || 'Something went wrong. Please try again.'); }
+  finally { btn.disabled=false; btn.textContent=orig; }
+}
+async function onSignedIn(user){
+  if (currentUser && currentUser.id === user.id) return;
+  currentUser = user;
+  const em = document.getElementById('userEmail'); if (em) em.textContent = user.email || '';
+  hideAuth();
+  await loadCloud();
+  applyTheme();
+  document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+  if (!state.view) state.view='dashboard';
+  render();
+}
+function onSignedOut(){
+  currentUser = null;
+  try { localStorage.removeItem(KEY); } catch(e){}
+  state = normalizeState(null);
+  setSync('');
+  showAuth(); setAuthMode('signin');
+  document.getElementById('authEmail').value=''; document.getElementById('authPassword').value='';
+}
+
+document.getElementById('authSubmit').onclick = submitAuth;
+document.getElementById('authPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') submitAuth(); });
+document.getElementById('authEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('authPassword').focus(); });
+document.getElementById('signOutBtn').onclick = ()=>{ if(sb) sb.auth.signOut(); };
+setAuthMode('signin');
+
+if (sb){
+  sb.auth.onAuthStateChange((event, session)=>{
+    if ((event==='SIGNED_IN' || event==='INITIAL_SESSION' || event==='TOKEN_REFRESHED') && session && session.user){ onSignedIn(session.user); }
+    else if (event==='SIGNED_OUT'){ onSignedOut(); }
+  });
+  (async ()=>{
+    try {
+      const { data:{ session } } = await sb.auth.getSession();
+      if (session && session.user) onSignedIn(session.user); else showAuth();
+    } catch(e){ showAuth(); }
+  })();
+} else {
+  // Cloud library unavailable — fall back to local-only so the app still works
+  hideAuth(); applyTheme();
+  document.title = (state.brand||'Keystone') + ' - Life Insurance CRM';
+  if (!state.view) state.view='dashboard';
+  render();
+}
 </script>
 
 </body>
