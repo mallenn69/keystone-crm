@@ -100,12 +100,13 @@
   .sidebar-foot button:hover { background: rgba(255,255,255,.12); }
   .sidebar-foot svg { width: 15px; height: 15px; }
 
-  .main { min-width: 0; display: flex; flex-direction: column; }
+  .main { min-width: 0; display: flex; flex-direction: column; height: 100vh; }
   .topbar { display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 20; }
   .topbar h1 { font-size: 19px; font-weight: 650; }
   .topbar .sub { color: var(--ink-3); font-size: 13px; margin-top: 1px; }
   .spacer { flex: 1; }
-  .content { padding: clamp(16px,2.4vw,26px) clamp(16px,3vw,30px) 64px; }
+  .content { padding: clamp(16px,2.4vw,26px) clamp(16px,3vw,30px) 64px; flex: 1; overflow-y: auto; min-height: 0; }
+  .content.cal-content { display: flex; flex-direction: column; padding-bottom: clamp(16px,2.4vw,26px); overflow: hidden; }
 
   .btn { display: inline-flex; align-items: center; gap: 7px; background: var(--accent); color: #fff; border: 0; padding: 9px 15px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13.5px; box-shadow: var(--shadow); }
   .btn:hover { background: var(--accent-strong); }
@@ -197,7 +198,10 @@
   .cal-toggle button { background: var(--surface); color: var(--ink-2); border: 0; padding: 7px 15px; font-weight: 600; font-size: 13px; }
   .cal-toggle button:hover { background: var(--surface-2); }
   .cal-toggle button.on { background: var(--accent); color: #fff; }
-  .wk-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  .cal-view { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .wk-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: auto; flex: 1; min-height: 0; }
+  .wk-now { position: absolute; left: 0; right: 0; height: 0; border-top: 2px solid var(--s-lost); z-index: 4; pointer-events: none; }
+  .wk-now::before { content: ''; position: absolute; left: -4px; top: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--s-lost); }
   .wk-inner { min-width: 760px; }
   .wk-headrow { display: grid; grid-template-columns: 58px repeat(7, minmax(0,1fr)); border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 3; }
   .wk-dayhead { text-align: center; padding: 9px 4px; border-left: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -634,6 +638,7 @@ function render(){
   $('#viewTitle').textContent = t; $('#viewSub').textContent = s;
   $('#addLeadBtn').classList.toggle('hidden', state.view==='import');
   const c = $('#content');
+  c.classList.toggle('cal-content', state.view==='calendar' && calMode==='week');
   if (state.view==='dashboard') c.innerHTML = viewDashboard();
   else if (state.view==='leads') { c.innerHTML = viewLeads(); wireLeads(); }
   else if (state.view==='pipeline') { c.innerHTML = viewPipeline(); wirePipeline(); }
@@ -863,7 +868,7 @@ function wirePipeline(){
 /* ========================= calendar ========================= */
 let calRef = new Date();
 let calMode = 'week';
-let _wkMinH = 8, _wkHH = 54;
+let _wkMinH = 8, _wkHH = 52, _wkScroll = 7;
 
 function calStartOfWeek(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return x; }
 function calFmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -911,14 +916,22 @@ function viewCalWeek(){
   const dayStrs = days.map(calFmtDate);
   const todayStr = calFmtDate(new Date());
   const weekAppts = state.appointments.filter(a=> dayStrs.includes(a.date));
-  let minH=8, maxH=19;
-  weekAppts.forEach(a=>{ const h=Math.floor(calToMin(a.time)/60); if(h<minH) minH=h; if(h+1>maxH) maxH=h+1; });
-  minH=Math.max(0,minH); maxH=Math.min(24, Math.max(maxH, minH+6));
-  _wkMinH=minH; _wkHH=54;
-  const HH=54;
+  const HH=52;
+  const minH=0, maxH=24;                 // full day, always scrollable to any hour
+  _wkMinH=minH; _wkHH=HH;
   const hours=[]; for(let h=minH;h<maxH;h++) hours.push(h);
   const bodyH=(maxH-minH)*HH;
   const dowShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // where to auto-scroll: the workday, nudged for "now" and any early appointment
+  const nowD=new Date();
+  const todayVisible = dayStrs.includes(calFmtDate(nowD));
+  let target = 7;
+  if (todayVisible) target = Math.max(0, nowD.getHours()-2);
+  let earliest=null; weekAppts.forEach(a=>{ const h=Math.floor(calToMin(a.time)/60); if(earliest==null||h<earliest) earliest=h; });
+  if (earliest!=null) target = Math.min(target, Math.max(0, earliest-1));
+  _wkScroll = target;
+  const nowTop = ((nowD.getHours()*60 + nowD.getMinutes())/60)*HH;
 
   const label = (()=>{ const a=days[0], b=days[6];
     const mA=a.toLocaleDateString(undefined,{month:'short'}), mB=b.toLocaleDateString(undefined,{month:'short'});
@@ -929,6 +942,7 @@ function viewCalWeek(){
 
   const colHtml = days.map((d,di)=>{
     const ds=dayStrs[di];
+    const isToday = ds===todayStr;
     const laid=calLayoutDay(weekAppts.filter(a=>a.date===ds));
     const evHtml=laid.map(({e,col,cols})=>{
       const a=e.a; const l=state.leads.find(x=>x.id===a.leadId);
@@ -941,13 +955,14 @@ function viewCalWeek(){
         ${l&&a.title?`<div class="wk-evt-sub">${esc(a.title)}</div>`:''}
       </div>`;
     }).join('');
-    return `<div class="wk-col ${ds===todayStr?'today':''}" data-date="${ds}" style="height:${bodyH}px">
+    return `<div class="wk-col ${isToday?'today':''}" data-date="${ds}" style="height:${bodyH}px">
       ${hours.map((h,hi)=>`<div class="wk-line" style="top:${hi*HH}px"></div>`).join('')}
+      ${isToday?`<div class="wk-now" style="top:${nowTop}px"></div>`:''}
       ${evHtml}
     </div>`;
   }).join('');
 
-  return calHeadHtml(label) + `
+  return `<div class="cal-view">` + calHeadHtml(label) + `
   <div class="wk-wrap">
     <div class="wk-inner">
       <div class="wk-headrow">
@@ -961,7 +976,7 @@ function viewCalWeek(){
         ${colHtml}
       </div>
     </div>
-  </div>`;
+  </div></div>`;
 }
 
 function viewCalMonth(){
@@ -1007,6 +1022,8 @@ function wireCalendar(){
   document.querySelectorAll('.cal-toggle button').forEach(b=> b.onclick = ()=>{ calMode = b.dataset.mode; render(); });
 
   if (calMode==='week'){
+    const wrap = document.querySelector('.wk-wrap');
+    if (wrap) wrap.scrollTop = _wkScroll * _wkHH;
     document.querySelectorAll('.wk-col').forEach(col=> col.onclick = e=>{
       const evEl = e.target.closest('.wk-evt');
       if (evEl){ const a=state.appointments.find(x=>x.id===evEl.dataset.appt); if(a) apptModal(a); return; }
