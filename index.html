@@ -120,6 +120,8 @@
   /* ---------- stat cards ---------- */
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
   .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 17px; box-shadow: var(--shadow); }
+  .stat.clickable { cursor: pointer; transition: border-color .15s, transform .15s; }
+  .stat.clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
   .stat .label { color: var(--ink-3); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
   .stat .val { font-size: 27px; font-weight: 700; margin-top: 7px; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
   .stat .val small { font-size: 14px; color: var(--ink-3); font-weight: 600; }
@@ -519,9 +521,12 @@ function setSync(status){
   const [txt,color] = map[status] || ['',''];
   el.innerHTML = txt ? `<span class="sync-dot" style="background:${color}"></span>${txt}` : '';
 }
+let _dirty = false;      // an edit exists that hasn't reached the cloud yet
+let _accessToken = null; // kept fresh for the keepalive flush on tab close
 function scheduleCloudSave(){
   if (!currentUser || !sb) return;
   clearTimeout(_cloudT);
+  _dirty = true;
   setSync('pending');
   _cloudT = setTimeout(cloudSaveNow, 800);
 }
@@ -531,8 +536,49 @@ async function cloudSaveNow(){
     const { error } = await sb.from('crm_state').upsert({ user_id: currentUser.id, data: state, updated_at: new Date().toISOString() });
     setSync(error ? 'offline' : 'saved');
     if (error) console.warn('Cloud save error:', error.message);
+    else _dirty = false;
   } catch(e){ setSync('offline'); console.warn('Cloud save failed:', e); }
 }
+// Fires when the tab is closed/hidden with an edit still in the 800ms debounce
+// window. keepalive lets the request finish after the page is gone.
+function flushCloudSave(){
+  if (!_dirty || !currentUser || !_accessToken) return;
+  clearTimeout(_cloudT);
+  try {
+    fetch(`${SUPABASE_URL}/rest/v1/crm_state`, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + _accessToken,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify([{ user_id: currentUser.id, data: state, updated_at: new Date().toISOString() }])
+    });
+    _dirty = false;
+  } catch(e){}
+}
+window.addEventListener('beforeunload', flushCloudSave);
+document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState==='hidden') flushCloudSave(); });
+
+// When you come back to the app (e.g. after editing on your phone), pull the
+// latest from the cloud — but never while you have unsaved edits or a client open.
+let _lastFocusPull = 0;
+window.addEventListener('focus', async ()=>{
+  if (!currentUser || !sb || _dirty) return;
+  if (openLeadId || document.getElementById('modal').classList.contains('open')) return;
+  if (Date.now() - _lastFocusPull < 15000) return;
+  _lastFocusPull = Date.now();
+  try {
+    const { data, error } = await sb.from('crm_state').select('data').eq('user_id', currentUser.id).maybeSingle();
+    if (!error && data && data.data && JSON.stringify(data.data) !== JSON.stringify(state)){
+      state = normalizeState(data.data);
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+      render(); setSync('saved');
+    }
+  } catch(e){}
+});
 function normalizeState(s){
   s = s || {};
   return {
@@ -569,6 +615,24 @@ const $ = sel => document.querySelector(sel);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fullName = l => [l.firstName, l.lastName].filter(Boolean).join(' ').trim() || '(no name)';
 const initials = l => ((l.firstName||' ')[0] + (l.lastName||' ')[0]).toUpperCase().trim() || '?';
+function fmtPhone(v){
+  const d = String(v||'').replace(/\D/g,'');
+  const ten = (d.length===11 && d[0]==='1') ? d.slice(1) : d;
+  if (ten.length !== 10) return v; // leave anything non-standard alone
+  return `(${ten.slice(0,3)}) ${ten.slice(3,6)}-${ten.slice(6)}`;
+}
+function ageFromDob(v){
+  const s = String(v||'').trim(); if (!s) return '';
+  let m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);   // MM/DD/YYYY
+  let y, mo, day;
+  if (m){ mo=+m[1]; day=+m[2]; y=+m[3]; }
+  else { m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s); if (m){ y=+m[1]; mo=+m[2]; day=+m[3]; } }
+  if (!y || y<1900) return '';
+  const now = new Date();
+  let age = now.getFullYear()-y;
+  if (now.getMonth()+1 < mo || (now.getMonth()+1===mo && now.getDate()<day)) age--;
+  return (age>0 && age<120) ? String(age) : '';
+}
 function money(v) {
   if (v == null || v === '') return '';
   const n = Number(String(v).replace(/[^0-9.\-]/g,''));
@@ -623,6 +687,10 @@ function renderNav(){
   $('#nav').querySelectorAll('button').forEach(b => b.onclick = () => { go(b.dataset.view); $('#sidebar').classList.remove('open'); });
 }
 function go(view){ state.view = view; save(); render(); }
+function statGo(kind){
+  leadFilter = { q:'', stage: kind==='won' ? 'won' : 'all', source:'all', due: kind==='due' };
+  go('leads');
+}
 
 /* ========================= render root ========================= */
 const TITLES = {
@@ -668,12 +736,12 @@ function viewDashboard(){
 
   return `
   <div class="stat-grid">
-    <div class="stat"><div class="label">Total Clients</div><div class="val">${L.length}</div></div>
-    <div class="stat"><div class="label">Active Pipeline</div><div class="val">${active}</div></div>
-    <div class="stat"><div class="label">Follow-ups Due</div><div class="val" style="${dueFollow.length?'color:var(--s-quoted)':''}">${dueFollow.length}</div></div>
-    <div class="stat"><div class="label">Appts Today</div><div class="val">${apptsToday.length}</div></div>
-    <div class="stat"><div class="label">Policies Won</div><div class="val">${won.length}</div></div>
-    <div class="stat"><div class="label">Premium (Won)</div><div class="val">$${wonPrem.toLocaleString()}<small>/mo</small></div></div>
+    <div class="stat clickable" onclick="statGo('all')"><div class="label">Total Clients</div><div class="val">${L.length}</div></div>
+    <div class="stat clickable" onclick="go('pipeline')"><div class="label">Active Pipeline</div><div class="val">${active}</div></div>
+    <div class="stat clickable" onclick="statGo('due')"><div class="label">Follow-ups Due</div><div class="val" style="${dueFollow.length?'color:var(--s-quoted)':''}">${dueFollow.length}</div></div>
+    <div class="stat clickable" onclick="go('calendar')"><div class="label">Appts Today</div><div class="val">${apptsToday.length}</div></div>
+    <div class="stat clickable" onclick="statGo('won')"><div class="label">Policies Won</div><div class="val">${won.length}</div></div>
+    <div class="stat clickable" onclick="statGo('won')"><div class="label">Premium (Won)</div><div class="val">$${wonPrem.toLocaleString()}<small>/mo</small></div></div>
   </div>
   <div class="card" style="margin-bottom:20px;">
     <div class="card-head"><h3>Needs attention today</h3><div style="flex:1"></div><span class="cell-sub">${dow}</span></div>
@@ -696,7 +764,7 @@ function viewDashboard(){
     <div class="card">
       <div class="card-head"><h3>Pipeline breakdown</h3></div>
       <div class="card-body" style="padding:16px 18px;">
-        ${L.length===0 ? emptyMini('No leads yet &mdash; import a CSV or add one to get started.') :
+        ${L.length===0 ? emptyMini('No clients yet &mdash; import a CSV or add one to get started.') :
         funnel.map(f=>`
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:11px;">
             <div style="width:96px;font-size:12.5px;font-weight:600;color:var(--ink-2);">${f.st.label}</div>
@@ -728,7 +796,7 @@ function viewDashboard(){
     </div>
   </div>
   <div class="card" style="margin-top:20px;">
-    <div class="card-head"><h3>Recent leads</h3><div style="flex:1"></div><button class="btn ghost sm" onclick="go('leads')">View all</button></div>
+    <div class="card-head"><h3>Recent clients</h3><div style="flex:1"></div><button class="btn ghost sm" onclick="go('leads')">View all</button></div>
     <div class="card-body" style="padding:0;">
       ${recent.length===0 ? emptyMini('Nothing here yet.') : `<div class="table-wrap" style="border:0;box-shadow:none;border-radius:0;">
         <table><tbody>
@@ -764,6 +832,7 @@ function viewLeads(){
     <button class="toggle-btn ${leadFilter.due?'on':''}" id="dueToggle"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4M3 3v4h4"/></svg>Due follow-up</button>
     <div style="flex:1"></div>
     <span class="cell-sub" id="leadCount"></span>
+    <button class="btn ghost sm" id="exportCsvBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Export CSV</button>
   </div>
   <div id="leadTable"></div>`;
 }
@@ -791,7 +860,7 @@ function renderLeadTable(){
   if (state.leads.length===0){
     el.innerHTML = `<div class="table-wrap"><div class="empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
-      <h3>No leads yet</h3><div>Paste a CSV in the Import tab, or add a lead manually.</div>
+      <h3>No clients yet</h3><div>Paste a CSV in the Import tab, or add a client manually.</div>
       <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;"><button class="btn" onclick="go('import')">Import CSV</button><button class="btn ghost" onclick="openLead()">Add lead</button></div>
     </div></div>`; return;
   }
@@ -821,6 +890,7 @@ function wireLeads(){
   $('#stageFilter').onchange = e => { leadFilter.stage = e.target.value; renderLeadTable(); };
   $('#sourceFilter').onchange = e => { leadFilter.source = e.target.value; renderLeadTable(); };
   $('#dueToggle').onclick = e => { leadFilter.due = !leadFilter.due; e.currentTarget.classList.toggle('on', leadFilter.due); renderLeadTable(); };
+  $('#exportCsvBtn').onclick = exportClientsCsv;
 }
 
 /* ========================= pipeline (kanban) ========================= */
@@ -876,8 +946,7 @@ function calToMin(t){ const m=/^(\d{1,2}):(\d{2})/.exec(t||''); return m ? (+m[1
 function calFmtHour(h){ const ap=h<12?'AM':'PM'; let hh=h%12; if(hh===0) hh=12; return `${hh} ${ap}`; }
 function calFmtTime12(t){ const mn=calToMin(t); let h=Math.floor(mn/60), m=mn%60; const ap=h<12?'AM':'PM'; let hh=h%12; if(hh===0) hh=12; return `${hh}:${String(m).padStart(2,'0')} ${ap}`; }
 function calLayoutDay(appts){
-  const DUR=50;
-  const evs = appts.map(a=>({ a, start:calToMin(a.time), end:calToMin(a.time)+DUR })).sort((x,y)=> x.start-y.start);
+  const evs = appts.map(a=>({ a, start:calToMin(a.time), end:calToMin(a.time)+(Number(a.duration)||30) })).sort((x,y)=> x.start-y.start);
   let cols=[], group=[], groupEnd=-1; const res=[];
   const flush=()=>{ const n=cols.length; group.forEach(e=> res.push({ e, col:e._c, cols:n })); cols=[]; group=[]; };
   evs.forEach(e=>{
@@ -1046,7 +1115,7 @@ let importParsed = null; // {headers, rows, mapping}
 function viewImport(){
   return `
   <div class="import-step">
-    <h3><span class="step-n">1</span> Paste your leads</h3>
+    <h3><span class="step-n">1</span> Paste your leads or clients</h3>
     <p class="hint">Paste a CSV, or copy rows straight out of Excel / Google Sheets. Keep the header row on top if you have one &mdash; it makes mapping automatic.</p>
     <textarea class="paste" id="pasteBox" placeholder="First Name,Last Name,Phone,Email,State,Policy Type,Coverage&#10;John,Carter,555-208-1190,john@email.com,TX,Term Life,250000&#10;Maria,Lopez,555-777-3321,maria@email.com,FL,Final Expense,15000"></textarea>
     <div style="margin-top:12px;display:flex;gap:10px;">
@@ -1193,6 +1262,8 @@ function buildLeadsFromImport(){
         lead.notes = (lead.notes ? lead.notes+'\n' : '') + line;
       } else lead[field] = val;
     });
+    if (lead.phone) lead.phone = fmtPhone(lead.phone);
+    if (lead.dob && !lead.age){ const a = ageFromDob(lead.dob); if (a) lead.age = a; }
     return lead;
   }).filter(l=> l.firstName || l.lastName || l.phone || l.email);
 }
@@ -1413,6 +1484,18 @@ function renderDrawer(lead){
     inp.addEventListener('change', saveFields);
   });
 
+  // tidy-ups on blur: format the phone, fill age from DOB
+  const phoneInp = d.querySelector('[data-f="phone"]');
+  if (phoneInp) phoneInp.addEventListener('blur', ()=>{
+    const f = fmtPhone(phoneInp.value.trim());
+    if (f && f !== phoneInp.value){ phoneInp.value = f; lead.phone = f; save(); }
+  });
+  const dobInp = d.querySelector('[data-f="dob"]'), ageInp = d.querySelector('[data-f="age"]');
+  if (dobInp && ageInp) dobInp.addEventListener('blur', ()=>{
+    const a = ageFromDob(dobInp.value);
+    if (a && !ageInp.value){ ageInp.value = a; lead.age = a; save(); }
+  });
+
   // delete (in-app confirm &mdash; native confirm() is blocked in the sandbox)
   $('#delLead').onclick = ()=> confirmDialog('Delete client?', `This permanently removes <b>${esc(fullName(lead))}</b> and any appointments. This can't be undone.`, ()=>{
     state.leads = state.leads.filter(l=>l.id!==lead.id);
@@ -1441,21 +1524,24 @@ function confirmDialog(title, msg, onYes, yesLabel='Delete', danger=true){
 }
 function apptModal(appt, presetDate, presetLeadId, presetTime){
   const isNew = !appt;
-  const a = appt || { id:uid(), date:presetDate||new Date().toISOString().slice(0,10), time:presetTime||'10:00', title:'', leadId:presetLeadId||'', notes:'' };
+  const a = appt || { id:uid(), date:presetDate||new Date().toISOString().slice(0,10), time:presetTime||'10:00', duration:30, title:'', leadId:presetLeadId||'', notes:'' };
   const leadOpts = `<option value="">&mdash; No client &mdash;</option>` + state.leads.slice().sort((x,y)=>fullName(x).localeCompare(fullName(y))).map(l=>`<option value="${l.id}" ${a.leadId===l.id?'selected':''}>${esc(fullName(l))}</option>`).join('');
+  const durOpts = [[15,'15 min'],[30,'30 min'],[45,'45 min'],[60,'1 hour'],[90,'1.5 hours'],[120,'2 hours']]
+    .map(([v,t])=>`<option value="${v}" ${(Number(a.duration)||30)===v?'selected':''}>${t}</option>`).join('');
   openModal(isNew?'New appointment':'Edit appointment', `
     <div class="field-grid">
       <div class="field full"><label>Title</label><input id="aTitle" value="${esc(a.title)}" placeholder="e.g. Policy review call"></div>
       <div class="field"><label>Date</label><input id="aDate" type="date" value="${a.date}"></div>
       <div class="field"><label>Time</label><input id="aTime" type="time" value="${a.time}"></div>
-      <div class="field full"><label>Client</label><select id="aLead">${leadOpts}</select></div>
+      <div class="field"><label>Length</label><select id="aDur">${durOpts}</select></div>
+      <div class="field"><label>Client</label><select id="aLead">${leadOpts}</select></div>
       <div class="field full"><label>Notes</label><textarea id="aNotes" rows="2" style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 10px;background:var(--surface-2);color:var(--ink);outline:none;">${esc(a.notes)}</textarea></div>
     </div>`,
     `${!isNew?'<button class="btn danger" id="aDel" style="margin-right:auto;">Delete</button>':''}
      <button class="btn ghost" onclick="closeModal()">Cancel</button>
      <button class="btn" id="aSave">${isNew?'Add appointment':'Save'}</button>`);
   $('#aSave').onclick = ()=>{
-    a.title=$('#aTitle').value.trim()||'Appointment'; a.date=$('#aDate').value; a.time=$('#aTime').value; a.leadId=$('#aLead').value; a.notes=$('#aNotes').value.trim();
+    a.title=$('#aTitle').value.trim()||'Appointment'; a.date=$('#aDate').value; a.time=$('#aTime').value; a.duration=Number($('#aDur').value)||30; a.leadId=$('#aLead').value; a.notes=$('#aNotes').value.trim();
     if (isNew) state.appointments.push(a);
     // reflect on lead + stage bump
     if (a.leadId){ const l=state.leads.find(x=>x.id===a.leadId); if(l){ l.activity=l.activity||[]; l.activity.unshift({ts:Date.now(),text:`Appointment set for ${a.date} ${a.time}`,type:'stage'}); if(l.stage==='new'||l.stage==='contacted') l.stage='appointment'; } }
@@ -1474,6 +1560,25 @@ $('#addLeadBtn').onclick = ()=> openLead();
 $('#menuToggle').onclick = ()=> $('#sidebar').classList.toggle('open');
 
 /* ========================= backup / restore ========================= */
+function downloadFile(name, text, mime){
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function exportClientsCsv(){
+  const rows = filteredLeads();
+  if (!rows.length){ toast('No clients to export'); return; }
+  const cols = FIELDS.map(f=>f.key).concat(['stage','followUpDate','followUpNote']);
+  const labels = FIELDS.map(f=>f.label).concat(['Stage','Follow-up Date','Follow-up Note']);
+  const cell = v => { const s = String(v==null?'':v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const csv = [labels.join(',')]
+    .concat(rows.map(l=> cols.map(c=> cell(c==='stage' ? stageById(l.stage).label : l[c])).join(',')))
+    .join('\n');
+  downloadFile(`clients-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv');
+  toast(`Exported ${rows.length} client${rows.length!==1?'s':''}`);
+}
 $('#exportBtn').onclick = ()=>{
   const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1599,13 +1704,14 @@ setAuthMode('signin');
 
 if (sb){
   sb.auth.onAuthStateChange((event, session)=>{
+    if (session) _accessToken = session.access_token;
     if ((event==='SIGNED_IN' || event==='INITIAL_SESSION' || event==='TOKEN_REFRESHED') && session && session.user){ onSignedIn(session.user); }
-    else if (event==='SIGNED_OUT'){ onSignedOut(); }
+    else if (event==='SIGNED_OUT'){ _accessToken = null; onSignedOut(); }
   });
   (async ()=>{
     try {
       const { data:{ session } } = await sb.auth.getSession();
-      if (session && session.user) onSignedIn(session.user); else showAuth();
+      if (session && session.user){ _accessToken = session.access_token; onSignedIn(session.user); } else showAuth();
     } catch(e){ showAuth(); }
   })();
 } else {
