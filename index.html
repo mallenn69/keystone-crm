@@ -941,14 +941,34 @@ function looksLikeHeader(cells){
   return numeric === 0 && !hasEmail;
 }
 function normalize(s){ return s.toLowerCase().replace(/[_\-.]/g,' ').replace(/\s+/g,' ').trim(); }
+function containsSeq(arr, seq){
+  if (seq.length > arr.length) return false;
+  for (let i=0; i<=arr.length-seq.length; i++){
+    let ok=true;
+    for (let j=0; j<seq.length; j++){ if (arr[i+j]!==seq[j]){ ok=false; break; } }
+    if (ok) return true;
+  }
+  return false;
+}
 function guessField(header){
   const h = normalize(header);
+  const htok = h.split(' ').filter(Boolean);
+  // 1) exact phrase match against a known synonym
   for (const [key, syns] of Object.entries(SYNONYMS)){
     if (syns.includes(h)) return key;
   }
-  // partial contains
+  // 2) token-aware match (avoids false positives like "best time" -> "st")
   for (const [key, syns] of Object.entries(SYNONYMS)){
-    if (syns.some(s=> h===s || h.includes(s) || s.includes(h))) return key;
+    for (const s of syns){
+      const stok = s.split(' ').filter(Boolean);
+      if (stok.length === 1){
+        // single-word synonym only matches a single-word header (exact token)
+        if (htok.length === 1 && htok[0] === stok[0]) return key;
+      } else {
+        // multi-word synonym matches if it appears as consecutive words in the header
+        if (containsSeq(htok, stok)) return key;
+      }
+    }
   }
   return '';
 }
@@ -966,21 +986,23 @@ function doParse(){
   if (hasHeader){ headers = rows[0]; dataRows = rows.slice(1); }
   else { headers = rows[0].map((_,i)=>`Column ${i+1}`); dataRows = rows; }
 
-  const mapping = headers.map(h=> hasHeader ? guessField(h) : '');
+  const mapping = headers.map(h=> hasHeader ? (guessField(h) || '__note__') : '');
   importParsed = { headers, rows: dataRows, mapping, hasHeader };
   renderMapStep();
 }
 function renderMapStep(){
   const { headers, rows, mapping } = importParsed;
-  const mapped = mapping.filter(Boolean).length;
+  const mapped = mapping.filter(m=> m && m!=='__note__').length;
+  const toNotes = mapping.filter(m=> m==='__note__').length;
   const options = `<option value="">&mdash; Skip this column &mdash;</option>` +
     `<option value="fullName">Full Name (auto-split)</option>` +
+    `<option value="__note__">Add to Notes (keeps column label)</option>` +
     FIELDS.map(f=>`<option value="${f.key}">${f.label}</option>`).join('');
   const el = $('#mapStep');
   el.innerHTML = `
   <div class="import-step">
     <h3><span class="step-n">2</span> Check the field mapping</h3>
-    <p class="hint">${mapped} of ${headers.length} columns matched automatically. Fix any that look off &mdash; pick the right field or skip the column.</p>
+    <p class="hint">${mapped} of ${headers.length} columns matched to fields${toNotes?`, ${toNotes} added to Notes so nothing is lost`:''}. Fix any that look off, or set a column to Skip to drop it.</p>
     <div style="overflow-x:auto;"><table class="map-table">
       <thead><tr><th>Your column</th><th>Sample data</th><th>Maps to</th></tr></thead>
       <tbody>${headers.map((h,i)=>`<tr>
@@ -1015,8 +1037,9 @@ function buildLeadsFromImport(){
       if (field==='fullName'){
         const parts = val.split(/\s+/);
         lead.firstName = parts.shift()||''; lead.lastName = parts.join(' ');
-      } else if (field==='notes'){
-        lead.notes = (lead.notes? lead.notes+' | ':'') + val;
+      } else if (field==='notes' || field==='__note__'){
+        const line = (field==='__note__') ? `${headers[i]}: ${val}` : val;
+        lead.notes = (lead.notes ? lead.notes+'\n' : '') + line;
       } else lead[field] = val;
     });
     return lead;
@@ -1172,6 +1195,10 @@ function renderDrawer(lead){
               ${taFull('medications','Medications')}
               ${taFull('health','Health conditions / notes')}
             </div>
+          </div>
+          <div class="drawer-section">
+            <h4>Notes</h4>
+            <div class="field-grid"><div class="field full"><label>General notes</label><textarea data-f="notes" rows="4" placeholder="Anything else worth keeping. Extra columns from an imported CSV land here automatically.">${esc(lead.notes||'')}</textarea></div></div>
           </div>
         </div>
       </div>
