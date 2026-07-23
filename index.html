@@ -547,6 +547,7 @@
   .scripts-library { display:flex; flex-direction:column; }
   .scripts-library-head { padding:16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
   .scripts-library-head strong { font-size:14px; }
+  .scripts-library-head .script-import-label { margin-left:0; }
   .script-list { padding:8px; overflow-y:auto; flex:1; }
   .script-list-item { width:100%; text-align:left; color:var(--ink); background:transparent; border:1px solid transparent; border-radius:10px; padding:11px 12px; margin-bottom:4px; }
   .script-list-item:hover { background:var(--surface-2); }
@@ -554,7 +555,7 @@
   .script-list-item b { display:block; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .script-list-item span { display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px; }
   .scripts-empty { padding:30px 18px; text-align:center; color:var(--ink-3); font-size:12.5px; }
-  .script-workbench { display:flex; flex-direction:column; min-width:0; }
+  .script-workbench { position:relative; display:flex; flex-direction:column; min-width:0; }
   .script-toolbar { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .script-title-input { flex:1; min-width:220px; border:0; background:transparent; color:var(--ink); font-size:18px; font-weight:750; outline:none; }
   .script-client-select { min-width:220px; border:1px solid var(--border-strong); border-radius:9px; padding:8px 10px; background:var(--surface-2); color:var(--ink); }
@@ -562,14 +563,96 @@
   .script-panel { padding:18px; min-width:0; display:flex; flex-direction:column; }
   .script-panel + .script-panel { border-left:1px solid var(--border); background:var(--surface-2); }
   .script-panel-label { color:var(--ink-3); font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; }
-  .script-editor { width:100%; flex:1; min-height:480px; resize:none; border:1px solid var(--border-strong); border-radius:12px; padding:18px; background:var(--note-bg); color:var(--ink); outline:none; font-size:15.5px; line-height:1.75; }
+  .script-document-shell { flex:1; min-height:480px; display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:12px; background:var(--note-bg); overflow:hidden; }
+  .script-formatbar { display:flex; align-items:center; gap:5px; flex-wrap:wrap; padding:8px; border-bottom:1px solid var(--border); background:var(--surface-2); }
+  .script-formatbar button { min-width:31px; height:30px; padding:0 8px; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--ink-2); font-size:12px; font-weight:700; }
+  .script-formatbar button:hover { border-color:var(--accent); color:var(--accent-strong); }
+  .script-formatbar .format-sep { width:1px; height:20px; margin:0 3px; background:var(--border); }
+  .script-import-label { display:inline-flex; align-items:center; gap:6px; min-height:30px; margin-left:auto; padding:0 10px; border:1px solid var(--border-strong); border-radius:7px; background:var(--surface); color:var(--ink-2); cursor:pointer; font-size:11.5px; font-weight:750; }
+  .script-import-label:hover { border-color:var(--accent); color:var(--accent-strong); }
+  .script-editor { width:100%; flex:1; min-height:430px; overflow-y:auto; padding:22px; background:var(--note-bg); color:var(--ink); outline:none; font-size:15.5px; line-height:1.72; }
   .script-editor:focus { border-color:var(--accent); }
-  .script-preview { flex:1; min-height:480px; border:1px solid var(--border); border-radius:12px; padding:22px; background:var(--surface); color:var(--ink); font-size:17px; line-height:1.8; white-space:pre-wrap; overflow-y:auto; }
+  .script-editor:empty::before { content:attr(data-placeholder); color:var(--ink-3); pointer-events:none; }
+  .script-editor p, .script-preview p { margin:0 0 .9em; }
+  .script-editor h1, .script-preview h1 { font-size:1.65em; line-height:1.2; margin:.2em 0 .7em; }
+  .script-editor h2, .script-preview h2 { font-size:1.35em; line-height:1.25; margin:.3em 0 .65em; }
+  .script-editor h3, .script-preview h3 { font-size:1.15em; margin:.4em 0 .6em; }
+  .script-editor ul, .script-editor ol, .script-preview ul, .script-preview ol { margin:.5em 0 1em 1.5em; padding:0; }
+  .script-editor blockquote, .script-preview blockquote { margin:1em 0; padding:.5em 1em; border-left:3px solid var(--accent); background:var(--accent-soft); }
+  .script-editor table, .script-preview table { width:100%; border-collapse:collapse; margin:1em 0; }
+  .script-editor td, .script-editor th, .script-preview td, .script-preview th { padding:7px 9px; border:1px solid var(--border); }
+  .script-editor mark, .script-preview mark { padding:.08em .16em; border-radius:3px; background:#ffe76a; color:#17201d; }
+  .script-editor .highlight-green, .script-preview .highlight-green { background:#9cf2b2; }
+  .script-editor .highlight-cyan, .script-preview .highlight-cyan { background:#8cebf0; }
+  .script-editor .highlight-magenta, .script-preview .highlight-magenta { background:#f4a6e8; }
+  .script-editor .highlight-blue, .script-preview .highlight-blue { background:#a8c7ff; }
+  .script-editor .highlight-red, .script-preview .highlight-red { background:#ffaaa4; }
+  .script-editor .highlight-dark-yellow, .script-preview .highlight-dark-yellow { background:#c6a83f; color:#fff; }
+  .script-editor .highlight-dark-green, .script-preview .highlight-dark-green { background:#397b4c; color:#fff; }
+  .script-editor .highlight-dark-blue, .script-preview .highlight-dark-blue { background:#355d9b; color:#fff; }
+  .script-editor .highlight-dark-red, .script-preview .highlight-dark-red { background:#983c3c; color:#fff; }
+  .script-editor .highlight-dark-gray, .script-preview .highlight-dark-gray { background:#565b59; color:#fff; }
+  .script-editor .highlight-light-gray, .script-preview .highlight-light-gray { background:#d9dddb; color:#17201d; }
+  .script-preview { flex:1; min-height:480px; border:1px solid var(--border); border-radius:12px; padding:24px; background:var(--surface); color:var(--ink); font-size:17px; line-height:1.75; overflow-y:auto; }
   .script-preview .placeholder { color:var(--accent-strong); font-weight:700; }
-  .script-fields { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .script-field-chip { border:1px solid var(--border-strong); background:var(--surface-2); color:var(--ink-2); border-radius:20px; padding:5px 9px; font-size:11px; font-weight:650; }
+  .script-fields { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; }
+  .script-field-chip { display:flex; align-items:center; gap:7px; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--ink-2); border-radius:9px; padding:7px 9px; font-size:11px; font-weight:700; text-align:left; }
+  .script-field-chip code { color:var(--accent-strong); font:650 10px var(--mono); }
+  .script-field-chip.smart { border-color:color-mix(in srgb,var(--accent) 40%,var(--border)); background:var(--accent-soft); }
+  .script-field-chip.smart code { display:none; }
   .script-field-chip:hover { border-color:var(--accent); color:var(--accent-strong); }
   .script-save-status { color:var(--ink-3); font-size:11.5px; margin-left:auto; }
+  .docx-import-note { color:var(--ink-3); font-size:10.5px; margin-top:7px; line-height:1.4; }
+  .script-helper-bar { position:relative; display:flex; align-items:center; gap:7px; margin-bottom:9px; padding:9px 10px; border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border)); border-radius:10px; background:var(--accent-soft); }
+  .script-helper-bar .smart-action { color:var(--accent-strong); border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); }
+  .script-helper-bar > span { margin-left:auto; color:var(--ink-3); font-size:10.5px; }
+  .script-guide-panel { position:absolute; z-index:25; top:112px; left:18px; width:min(620px,calc(100% - 36px)); max-height:calc(100% - 145px); border:1px solid var(--border-strong); border-radius:13px; background:var(--surface); box-shadow:0 22px 60px rgba(0,0,0,.28); overflow:hidden; }
+  .script-guide-panel[hidden] { display:none; }
+  .script-guide-panel-head { display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); background:var(--surface-2); }
+  .script-guide-panel-head b, .script-guide-panel-head span { display:block; }
+  .script-guide-panel-head b { font-size:13px; }
+  .script-guide-panel-head span { color:var(--ink-3); font-size:10.5px; margin-top:2px; }
+  .script-guide-panel-head .close { margin-left:auto; width:30px; height:30px; border-radius:50%; background:var(--surface); color:var(--ink-2); font-size:20px; }
+  .script-guide-scroll { max-height:560px; overflow-y:auto; padding-bottom:14px; }
+  .script-guide-scroll > .script-fields { padding:6px 12px; }
+  .script-guide-intro code { color:var(--accent-strong); font:650 10px var(--mono); }
+  .script-guide-divider { margin:12px 12px 2px; padding-top:12px; border-top:1px solid var(--border); }
+  .script-guide-divider b, .script-guide-divider span { display:block; }
+  .script-guide-divider b { color:var(--accent-strong); font-size:12px; }
+  .script-guide-divider span { color:var(--ink-3); font-size:10.5px; margin-top:2px; }
+  .script-selection-tool { position:fixed; z-index:100; display:flex; align-items:center; gap:8px; max-width:360px; padding:7px 8px 7px 11px; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); box-shadow:0 12px 34px rgba(0,0,0,.3); }
+  .script-selection-tool[hidden] { display:none; }
+  .script-selection-tool span { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-3); font-size:10.5px; }
+  .script-selection-tool button { padding:7px 9px; border-radius:7px; background:var(--accent); color:#fff; font-size:10.5px; font-weight:800; white-space:nowrap; }
+  .script-field-guide { margin-top:10px; border:1px solid var(--border); border-radius:11px; background:var(--surface); overflow:hidden; }
+  .script-field-guide summary { display:flex; align-items:center; gap:10px; padding:11px 12px; cursor:pointer; color:var(--ink); font-size:12px; font-weight:800; }
+  .script-field-guide summary small { margin-left:auto; color:var(--ink-3); font-size:10.5px; font-weight:600; }
+  .script-field-guide[open] summary { border-bottom:1px solid var(--border); }
+  .script-field-guide.smart summary { color:var(--accent-strong); }
+  .script-guide-intro { padding:11px 12px 2px; color:var(--ink-3); font-size:11px; line-height:1.45; }
+  .script-guide-group { padding:9px 12px 4px; }
+  .script-guide-group:last-child { padding-bottom:12px; }
+  .script-guide-group > b { color:var(--ink-3); font-size:9.5px; text-transform:uppercase; letter-spacing:.7px; }
+  .script-field-guide.smart > .script-fields { padding:8px 12px 12px; }
+  .script-live-control { display:flex; align-items:center; gap:10px; width:100%; margin:.65em 0; padding:10px 12px; border:1px solid color-mix(in srgb,var(--accent) 42%,var(--border)); border-radius:10px; background:var(--accent-soft); line-height:1.25; }
+  .script-live-label { flex:1; min-width:0; color:var(--ink); font-size:12px; font-weight:800; }
+  .script-live-actions { display:flex; gap:5px; }
+  .script-live-actions button { min-width:51px; padding:7px 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--ink-2); font-size:11px; font-weight:800; }
+  .script-live-actions button.on.yes { color:#0c6f4e; border-color:#33bd8c; background:#d9f8eb; }
+  .script-live-actions button.on.no { color:#a03c3c; border-color:#e27979; background:#fde6e6; }
+  [data-theme="dark"] .script-live-actions button.on.yes { color:#80ecc8; background:#164b3d; }
+  [data-theme="dark"] .script-live-actions button.on.no { color:#ffaaaa; background:#4a2222; }
+  .script-live-input input, .script-live-input select { width:min(220px,48%); padding:8px 9px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--ink); font-size:12px; }
+  .health-screening { margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+  .health-screening-head { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .health-screening-head b { font-size:12px; }
+  .health-screening-head span { color:var(--ink-3); font-size:10.5px; }
+  .health-screening-list { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .health-screening-list > div:not(.health-screening-empty) { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; border-radius:8px; background:var(--surface-2); font-size:11.5px; }
+  .health-screening-list b { font-size:10px; text-transform:uppercase; }
+  .health-screening-list b.yes { color:#18a874; }
+  .health-screening-list b.no { color:var(--ink-3); }
+  .health-screening-empty { grid-column:1/-1; color:var(--ink-3); font-size:11px; }
   @media (max-width:1000px) {
     .scripts-layout { grid-template-columns:1fr; min-height:auto; }
     .scripts-library { max-height:260px; }
@@ -650,6 +733,24 @@
   .field input, .field select, .field textarea { padding: 10px 11px; background: var(--surface-2); }
   .timeline { max-height: 400px; overflow-y: auto; padding-right: 5px; }
   .drawer-foot { padding: 12px 24px; }
+  .drawer { --call-script-width:min(680px,42vw); }
+  .call-script-dock { position:absolute; z-index:12; inset:0 auto 0 0; width:var(--call-script-width); display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--border-strong); box-shadow:24px 0 55px rgba(7,25,19,.22); transform:translateX(-105%); transition:transform .24s cubic-bezier(.4,0,.2,1); }
+  .call-script-dock.open { transform:translateX(0); }
+  .drawer > .drawer-head, .drawer > .stage-select-wrap, .drawer > .qbar, .drawer > .followup-band, .drawer > .drawer-body, .drawer > .drawer-foot { transition:margin-left .24s cubic-bezier(.4,0,.2,1); }
+  .drawer.script-open > .drawer-head, .drawer.script-open > .stage-select-wrap, .drawer.script-open > .qbar, .drawer.script-open > .followup-band, .drawer.script-open > .drawer-body, .drawer.script-open > .drawer-foot { margin-left:var(--call-script-width); }
+  .drawer.script-open .drawer-cols { max-width:none; grid-template-columns:minmax(500px,1.15fr) minmax(380px,.85fr); }
+  .call-script-dock-head { display:flex; align-items:center; gap:12px; min-height:78px; padding:15px 18px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .call-script-dock-head .script-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:11px; color:var(--accent-strong); background:var(--accent-soft); font-weight:850; }
+  .call-script-dock-head strong { display:block; font-size:15px; }
+  .call-script-dock-head span { display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px; }
+  .call-script-dock-head .close { margin-left:auto; width:36px; height:36px; border-radius:50%; background:var(--surface-2); color:var(--ink-2); font-size:22px; }
+  .call-script-dock-tools { display:flex; align-items:center; gap:8px; padding:11px 16px; border-bottom:1px solid var(--border); background:var(--surface-2); }
+  .call-script-dock-tools select { min-width:0; flex:1; padding:9px 10px; border:1px solid var(--border-strong); border-radius:9px; background:var(--surface); color:var(--ink); }
+  .call-script-dock-body { flex:1; min-height:0; overflow-y:auto; padding:18px; background:var(--bg); }
+  .call-script-dock-body .script-preview { min-height:100%; padding:28px 30px; box-shadow:var(--shadow); }
+  .call-script-dock-foot { display:flex; gap:9px; align-items:center; padding:12px 16px; border-top:1px solid var(--border); background:var(--surface); }
+  .call-script-empty { display:grid; place-items:center; min-height:100%; padding:40px; text-align:center; border:1px dashed var(--border-strong); border-radius:14px; background:var(--surface); color:var(--ink-3); }
+  .call-script-empty strong { display:block; color:var(--ink); font-size:17px; margin-bottom:5px; }
   .call-command { overflow: hidden; padding: 0; }
   .call-command-head { padding: 18px 19px; display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg,var(--surface),var(--accent-soft)); border-bottom: 1px solid var(--border); }
   .call-command-head h4 { margin: 0 0 3px; }
@@ -681,7 +782,9 @@
     .calendar-stage { grid-template-columns: 1fr; overflow-y: auto; }
     .agenda-panel { max-height: 360px; }
     .drawer-cols { grid-template-columns: 1fr; }
+    .drawer.script-open .drawer-cols { grid-template-columns:1fr; }
     .discovery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .drawer.script-open > .drawer-head, .drawer.script-open > .stage-select-wrap, .drawer.script-open > .qbar, .drawer.script-open > .followup-band, .drawer.script-open > .drawer-body, .drawer.script-open > .drawer-foot { margin-left:0; }
   }
   @media (max-width: 720px){
     .app { grid-template-columns: 1fr; }
@@ -697,6 +800,7 @@
     .call-command-head { align-items: flex-start; flex-wrap: wrap; }
     .call-timer { margin-left: 0; }
     .discovery-grid, .call-wrap { grid-template-columns: 1fr; }
+    .call-script-dock { width:100%; }
     .followup-band, .qbar, .stage-select-wrap { padding-left: 14px; padding-right: 14px; }
     .calendar-stage { display: block; }
     .agenda-panel { margin-top: 12px; }
@@ -1426,18 +1530,164 @@ function wirePipeline(){
 let activeScriptId = null;
 let scriptClientId = '';
 const SCRIPT_FIELDS = [
-  ['firstName','First name'],['lastName','Last name'],['fullName','Full name'],
-  ['phone','Phone'],['email','Email'],['city','City'],['state','State'],
-  ['policyType','Policy type'],['coverageAmount','Coverage'],['premium','Premium'],['leadSource','Lead source']
+  ['firstName','First name','Contact'],['lastName','Last name','Contact'],['fullName','Full name','Contact'],
+  ['phone','Phone','Contact'],['email','Email','Contact'],['dob','Date of birth','Contact'],['age','Age','Contact'],
+  ['gender','Gender','Contact'],['address','Street address','Contact'],['city','City','Contact'],['state','State','Contact'],['zip','ZIP','Contact'],
+  ['policyType','Policy type','Policy'],['coverageAmount','Coverage amount','Policy'],['premium','Monthly premium','Policy'],['beneficiary','Beneficiary','Policy'],
+  ['carrier','Carrier','Application'],['appStatus','Application status','Application'],['tobacco','Tobacco','Application'],
+  ['height','Height','Application'],['weight','Weight','Application'],['doctor','Primary doctor','Application'],
+  ['medications','Medications','Application'],['health','Health notes','Application'],
+  ['callGoal','Insurance goal','Call discovery'],['monthlyBudget','Monthly budget','Call discovery'],
+  ['existingCoverage','Existing coverage','Call discovery'],['dependents','Dependents','Call discovery'],
+  ['decisionMaker','Decision maker','Call discovery'],['purchaseTimeline','Timeline','Call discovery'],
+  ['leadSource','Lead source','Other'],['nextCallStep','Next call action','Other'],['followUpDate','Follow-up date','Other']
 ];
+const SCRIPT_LIVE_FIELDS = [
+  {token:'[[input:age|Age]]',label:'Age',help:'Type the age and save it to the client'},
+  {token:'[[select:policyType|Policy type|Term Life;Whole Life;IUL;Final Expense;Mortgage Protection;Universal Life;Annuity;Other]]',label:'Policy choice',help:'Choose a policy and save it to the client'},
+  {token:'[[yesno:kidneyLiver|Kidney / liver disease]]',label:'Kidney / liver',help:'Yes or No health screening'},
+  {token:'[[yesno:thyroid|Thyroid condition]]',label:'Thyroid',help:'Yes or No health screening'},
+  {token:'[[yesno:diabetes|Diabetes]]',label:'Diabetes',help:'Yes or No health screening'},
+  {token:'[[yesno:heartDisease|Heart disease / heart attack]]',label:'Heart',help:'Yes or No health screening'},
+  {token:'[[yesno:cancer|Cancer history]]',label:'Cancer',help:'Yes or No health screening'},
+  {token:'[[yesno:stroke|Stroke history]]',label:'Stroke',help:'Yes or No health screening'}
+];
+const HEALTH_ANSWER_LABELS = {
+  kidneyLiver:'Kidney / liver disease', thyroid:'Thyroid condition', diabetes:'Diabetes',
+  heartDisease:'Heart disease / heart attack', cancer:'Cancer history', stroke:'Stroke history'
+};
 function scriptCollection(){ state.scripts = Array.isArray(state.scripts) ? state.scripts : []; return state.scripts; }
 function scriptValue(key,lead){
   if (!lead) return `{{${key}}}`;
   if (key==='fullName') return fullName(lead);
   return lead[key] || `{{${key}}}`;
 }
-function personalizeScript(body,lead){
-  return String(body||'').replace(/\{\{\s*([a-zA-Z]+)\s*\}\}/g,(all,key)=>scriptValue(key,lead));
+function plainToRich(text){
+  return String(text||'').split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('');
+}
+function scriptPlainText(html){
+  const box=document.createElement('div'); box.innerHTML=html||'';
+  return (box.innerText||box.textContent||'').trim();
+}
+function sanitizeRichHtml(html){
+  const doc=new DOMParser().parseFromString(`<div>${html||''}</div>`,'text/html');
+  const allowed=new Set(['DIV','P','BR','STRONG','B','EM','I','U','S','DEL','SUP','SUB','H1','H2','H3','H4','H5','H6','UL','OL','LI','BLOCKQUOTE','TABLE','THEAD','TBODY','TR','TH','TD','MARK','A','SPAN']);
+  [...doc.body.querySelectorAll('*')].forEach(el=>{
+    if (!allowed.has(el.tagName)){ el.replaceWith(...el.childNodes); return; }
+    [...el.attributes].forEach(attr=>{
+      const name=attr.name.toLowerCase();
+      if (name==='class'){
+        const safe=attr.value.split(/\s+/).filter(c=>/^highlight-[a-z-]+$/.test(c)).join(' ');
+        if(safe) el.setAttribute('class',safe); else el.removeAttribute('class');
+      } else if(name==='href' && el.tagName==='A'){
+        if(!/^https?:\/\//i.test(attr.value) && !/^mailto:/i.test(attr.value)) el.removeAttribute('href');
+        else { el.setAttribute('target','_blank'); el.setAttribute('rel','noopener noreferrer'); }
+      } else if(name!=='colspan' && name!=='rowspan') el.removeAttribute(attr.name);
+    });
+  });
+  return doc.body.firstElementChild?.innerHTML||'';
+}
+function personalizeRichScript(html,lead){
+  const safe=sanitizeRichHtml(html);
+  const personalized=safe.replace(/\{\{\s*([a-zA-Z]+)\s*\}\}/g,(all,key)=>{
+    const value=scriptValue(key,lead);
+    return value===all || value===`{{${key}}}` ? `<span class="placeholder">{{${key}}}</span>` : esc(value);
+  });
+  return renderLiveScriptFields(personalized,lead);
+}
+function renderLiveScriptFields(html,lead){
+  return html
+    .replace(/\[\[yesno:([a-zA-Z][\w-]*)\|([^\]]+)\]\]/g,(all,key,label)=>{
+      const value=lead?.healthAnswers?.[key]||'';
+      return `<span class="script-live-control script-live-yesno" data-live-health="${esc(key)}" data-live-label="${esc(label)}"><span class="script-live-label">${esc(label)}</span><span class="script-live-actions"><button type="button" data-live-value="Yes" class="${value==='Yes'?'on yes':''}">Yes</button><button type="button" data-live-value="No" class="${value==='No'?'on no':''}">No</button></span></span>`;
+    })
+    .replace(/\[\[input:([a-zA-Z][\w-]*)\|([^\]]+)\]\]/g,(all,key,label)=>{
+      const value=lead?.[key]||'';
+      return `<label class="script-live-control script-live-input"><span class="script-live-label">${esc(label)}</span><input type="${key==='age'?'number':'text'}" data-live-field="${esc(key)}" value="${esc(value)}" placeholder="Enter ${esc(label.toLowerCase())}"></label>`;
+    })
+    .replace(/\[\[select:([a-zA-Z][\w-]*)\|([^|\]]+)\|([^\]]+)\]\]/g,(all,key,label,choices)=>{
+      const value=lead?.[key]||'';
+      const options=choices.split(';').map(choice=>choice.trim()).filter(Boolean);
+      return `<label class="script-live-control script-live-input"><span class="script-live-label">${esc(label)}</span><select data-live-field="${esc(key)}"><option value="">Choose…</option>${options.map(choice=>`<option value="${esc(choice)}" ${choice===value?'selected':''}>${esc(choice)}</option>`).join('')}</select></label>`;
+    });
+}
+function refreshHealthScreening(lead){
+  const list=$('#healthScreeningList'); if(!list) return;
+  const answers=Object.entries(lead.healthAnswers||{});
+  list.innerHTML=answers.length ? answers.map(([key,value])=>`<div><span>${esc(lead.healthAnswerLabels?.[key]||HEALTH_ANSWER_LABELS[key]||key.replace(/([A-Z])/g,' $1'))}</span><b class="${value==='Yes'?'yes':'no'}">${esc(value)}</b></div>`).join('') : '<div class="health-screening-empty">No script answers recorded yet.</div>';
+}
+function wireLiveScriptFields(container,lead,onUpdate){
+  if(!container || !lead) return;
+  container.querySelectorAll('[data-live-health]').forEach(control=>{
+    control.querySelectorAll('[data-live-value]').forEach(button=>button.onclick=()=>{
+      lead.healthAnswers=lead.healthAnswers||{};
+      lead.healthAnswerLabels=lead.healthAnswerLabels||{};
+      lead.healthAnswers[control.dataset.liveHealth]=button.dataset.liveValue;
+      lead.healthAnswerLabels[control.dataset.liveHealth]=control.dataset.liveLabel||HEALTH_ANSWER_LABELS[control.dataset.liveHealth]||control.dataset.liveHealth;
+      save();
+      refreshHealthScreening(lead);
+      control.querySelectorAll('[data-live-value]').forEach(b=>b.className=b.dataset.liveValue===button.dataset.liveValue?`on ${b.dataset.liveValue.toLowerCase()}`:'');
+      if(onUpdate) onUpdate();
+      toast('Health answer saved to client');
+    });
+  });
+  container.querySelectorAll('[data-live-field]').forEach(input=>{
+    const commit=(refresh=false)=>{
+      lead[input.dataset.liveField]=(input.value||'').trim();
+      save();
+      document.querySelectorAll(`[data-f="${input.dataset.liveField}"]`).forEach(field=>{ if(field!==input) field.value=input.value; });
+      if(refresh && onUpdate) onUpdate();
+    };
+    input.addEventListener('change',()=>commit(true));
+    if(input.tagName==='INPUT') input.addEventListener('input',debounce(()=>commit(false),300));
+  });
+}
+let mammothPromise=null;
+function loadMammoth(){
+  if(window.mammoth) return Promise.resolve(window.mammoth);
+  if(mammothPromise) return mammothPromise;
+  mammothPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js';
+    s.onload=()=>resolve(window.mammoth); s.onerror=()=>reject(new Error('Word importer could not load'));
+    document.head.appendChild(s);
+  });
+  return mammothPromise;
+}
+const DOCX_STYLE_MAP=[
+  'u => u',
+  "highlight[color='yellow'] => mark.highlight-yellow",
+  "highlight[color='green'] => mark.highlight-green",
+  "highlight[color='cyan'] => mark.highlight-cyan",
+  "highlight[color='magenta'] => mark.highlight-magenta",
+  "highlight[color='blue'] => mark.highlight-blue",
+  "highlight[color='red'] => mark.highlight-red",
+  "highlight[color='darkYellow'] => mark.highlight-dark-yellow",
+  "highlight[color='darkGreen'] => mark.highlight-dark-green",
+  "highlight[color='darkBlue'] => mark.highlight-dark-blue",
+  "highlight[color='darkRed'] => mark.highlight-dark-red",
+  "highlight[color='darkGray'] => mark.highlight-dark-gray",
+  "highlight[color='lightGray'] => mark.highlight-light-gray",
+  'highlight => mark'
+];
+async function convertWordScript(file){
+  if(!file || !/\.docx$/i.test(file.name)) throw new Error('Choose a Microsoft Word .docx file');
+  const mammoth=await loadMammoth();
+  const result=await mammoth.convertToHtml({arrayBuffer:await file.arrayBuffer()},{styleMap:DOCX_STYLE_MAP});
+  return sanitizeRichHtml(result.value);
+}
+function scriptGuideHtml(){
+  return `<div class="script-guide-panel" id="scriptGuidePanel" hidden>
+    <div class="script-guide-panel-head"><div><b>Script fields &amp; live questions</b><span>Click anything below to insert it where your cursor was.</span></div><button type="button" class="close" id="closeScriptGuide">&times;</button></div>
+    <div class="script-guide-scroll">
+      <div class="script-guide-intro"><b>Auto-fill tags</b><br>Use these in a sentence. For example: <code>It looks like you are {{age}}, correct?</code></div>
+      ${[...new Set(SCRIPT_FIELDS.map(field=>field[2]))].map(group=>`
+        <div class="script-guide-group"><b>${esc(group)}</b><div class="script-fields">${SCRIPT_FIELDS.filter(field=>field[2]===group).map(([key,label])=>`<button class="script-field-chip" data-script-token="{{${key}}}" title="Insert {{${key}}}"><span>${esc(label)}</span><code>{{${key}}}</code></button>`).join('')}</div></div>
+      `).join('')}
+      <div class="script-guide-divider"><b>Ready-made live questions</b><span>These save answers directly to the selected client.</span></div>
+      <div class="script-fields">${SCRIPT_LIVE_FIELDS.map(field=>`<button class="script-field-chip smart" data-script-token="${esc(field.token)}" title="${esc(field.help)}"><span>${esc(field.label)}</span><code>${esc(field.token)}</code></button>`).join('')}</div>
+    </div>
+  </div>`;
 }
 function viewScripts(){
   const scripts=scriptCollection();
@@ -1448,8 +1698,12 @@ function viewScripts(){
     [...state.leads].sort((a,b)=>fullName(a).localeCompare(fullName(b))).map(l=>`<option value="${l.id}" ${scriptClientId===l.id?'selected':''}>${esc(fullName(l))}</option>`).join('');
   return `<div class="scripts-layout">
     <aside class="scripts-library">
-      <div class="scripts-library-head"><strong>Saved scripts</strong><span class="spacer"></span><button class="btn sm" id="newScript">+ New</button></div>
-      <div class="script-list" id="scriptList">${scripts.length?scripts.map(s=>`<button class="script-list-item ${s.id===activeScriptId?'on':''}" data-script-id="${s.id}"><b>${esc(s.title||'Untitled script')}</b><span>${s.body?`${s.body.trim().split(/\s+/).length} words`:'Empty script'}</span></button>`).join(''):`<div class="scripts-empty">Create your first script, paste in your talk track, and personalize it for any client.</div>`}</div>
+      <div class="scripts-library-head">
+        <strong>Saved scripts</strong><span class="spacer"></span>
+        <label class="script-import-label" title="Create a script from a Microsoft Word .docx file">Import Word<input type="file" id="scriptDocxTop" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden></label>
+        <button class="btn sm" id="newScript">+ New</button>
+      </div>
+      <div class="script-list" id="scriptList">${scripts.length?scripts.map(s=>{const text=scriptPlainText(s.bodyHtml||plainToRich(s.body));return `<button class="script-list-item ${s.id===activeScriptId?'on':''}" data-script-id="${s.id}"><b>${esc(s.title||'Untitled script')}</b><span>${text?`${text.split(/\s+/).length} words`:'Empty script'}</span></button>`;}).join(''):`<div class="scripts-empty">Create your first script, paste in your talk track, or import a formatted Word document.</div>`}</div>
     </aside>
     <section class="script-workbench">
       ${active?`
@@ -1462,8 +1716,27 @@ function viewScripts(){
         <div class="script-panels">
           <div class="script-panel">
             <div class="script-panel-label">Template editor</div>
-            <textarea class="script-editor" id="scriptBody" placeholder="Paste your script here. Example:&#10;&#10;Hi {{firstName}}, this is Marcus. I’m calling about the {{policyType}} information you requested...">${esc(active.body||'')}</textarea>
-            <div class="script-fields">${SCRIPT_FIELDS.map(([key,label])=>`<button class="script-field-chip" data-script-field="${key}" title="Insert {{${key}}}">${label}</button>`).join('')}</div>
+            <div class="script-helper-bar">
+              <button type="button" class="btn ghost sm" id="openFieldGuide">Fields &amp; tags</button>
+              <button type="button" class="btn ghost sm smart-action" id="makeSelectionYesNo">Make selection Yes / No</button>
+              <span>Tip: highlight any question in your document to make it interactive.</span>
+            </div>
+            ${scriptGuideHtml()}
+            <div class="script-document-shell">
+              <div class="script-formatbar" id="scriptFormatbar">
+                <button type="button" data-format="bold" title="Bold"><b>B</b></button>
+                <button type="button" data-format="italic" title="Italic"><i>I</i></button>
+                <button type="button" data-format="underline" title="Underline"><u>U</u></button>
+                <button type="button" data-format="hiliteColor" data-value="#ffe76a" title="Highlight">Highlight</button>
+                <span class="format-sep"></span>
+                <button type="button" data-block="p" title="Normal text">Text</button>
+                <button type="button" data-block="h2" title="Heading">H2</button>
+                <button type="button" data-format="insertUnorderedList" title="Bulleted list">• List</button>
+                <label class="script-import-label" title="Import a Microsoft Word .docx file">Import Word<input type="file" id="scriptDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden></label>
+              </div>
+              <div class="script-editor" id="scriptBody" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Paste or type your script here…">${sanitizeRichHtml(active.bodyHtml||plainToRich(active.body))}</div>
+            </div>
+            <div class="docx-import-note">Word import keeps highlights, bold, italics, underlines, headings, lists, links, tables, and paragraph structure. Files are processed in your browser.</div>
             <span class="script-save-status" id="scriptSaveStatus">All changes save automatically</span>
           </div>
           <div class="script-panel">
@@ -1473,40 +1746,142 @@ function viewScripts(){
         </div>`:`
         <div class="empty" style="margin:auto;"><h3>Your script workspace</h3><div>Save objection handlers, opening calls, follow-ups, and presentation talk tracks here.</div><button class="btn" id="emptyNewScript" style="margin-top:16px;">Create a script</button></div>`}
     </section>
+    <div class="script-selection-tool" id="scriptSelectionTool" hidden><span id="scriptSelectionLabel"></span><button type="button" id="selectionYesNo">Make Yes / No</button></div>
   </div>`;
 }
 function wireScripts(){
   const createScript=()=>{
-    const s={id:uid(),title:'New script',body:'Hi {{firstName}},\n\n',createdAt:Date.now(),updatedAt:Date.now()};
+    const s={id:uid(),title:'New script',body:'Hi {{firstName}},',bodyHtml:'<p>Hi {{firstName}},</p>',createdAt:Date.now(),updatedAt:Date.now()};
     scriptCollection().unshift(s); activeScriptId=s.id; save(); render();
   };
   $('#newScript').onclick=createScript;
+  const topImport=$('#scriptDocxTop');
+  topImport.onchange=async e=>{
+    const file=e.target.files[0]; if(!file) return;
+    try {
+      toast('Importing Word document…');
+      const bodyHtml=await convertWordScript(file);
+      const s={id:uid(),title:file.name.replace(/\.docx$/i,''),bodyHtml,body:scriptPlainText(bodyHtml),createdAt:Date.now(),updatedAt:Date.now()};
+      scriptCollection().unshift(s); activeScriptId=s.id; save(); render();
+      toast(`Imported ${file.name} with formatting`);
+    } catch(err){ toast(err.message||'Could not import that Word document'); }
+    e.target.value='';
+  };
   const emptyNew=$('#emptyNewScript'); if(emptyNew) emptyNew.onclick=createScript;
   document.querySelectorAll('[data-script-id]').forEach(btn=>btn.onclick=()=>{activeScriptId=btn.dataset.scriptId;render();});
   const body=$('#scriptBody'), title=$('#scriptTitle'), client=$('#scriptClient');
   if(!body) return;
   const active=scriptCollection().find(s=>s.id===activeScriptId);
+  let savedEditorRange=null;
+  const selectionTool=$('#scriptSelectionTool');
+  const rememberEditorSelection=()=>{
+    const sel=window.getSelection();
+    if(!sel || !sel.rangeCount) return null;
+    const range=sel.getRangeAt(0);
+    const node=range.commonAncestorContainer.nodeType===1?range.commonAncestorContainer:range.commonAncestorContainer.parentElement;
+    if(!body.contains(node)) return null;
+    savedEditorRange=range.cloneRange();
+    return {range:savedEditorRange,text:sel.toString().trim()};
+  };
+  const restoreEditorRange=()=>{
+    if(!savedEditorRange) { body.focus(); return false; }
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(savedEditorRange); body.focus(); return true;
+  };
+  const insertEditorToken=token=>{
+    restoreEditorRange();
+    document.execCommand('insertText',false,token);
+    body.dispatchEvent(new Event('input',{bubbles:true}));
+    savedEditorRange=null;
+  };
+  const makeSelectedQuestion=()=>{
+    if(!savedEditorRange || savedEditorRange.collapsed){ toast('Highlight a question in the script first'); body.focus(); return; }
+    const question=savedEditorRange.toString().trim().replace(/\s+/g,' ').replace(/[\[\]|]/g,'').slice(0,140);
+    if(!question){ toast('Highlight a question in the script first'); return; }
+    const key=(question.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').slice(0,7).join('_')||'question').slice(0,64);
+    restoreEditorRange();
+    savedEditorRange.deleteContents();
+    const text=document.createTextNode(`[[yesno:${key}|${question}]]`);
+    savedEditorRange.insertNode(text);
+    savedEditorRange.setStartAfter(text); savedEditorRange.collapse(true);
+    body.dispatchEvent(new Event('input',{bubbles:true}));
+    selectionTool.hidden=true;
+    savedEditorRange=null;
+    toast('Question is now interactive');
+  };
+  body.addEventListener('mouseup',()=>{
+    setTimeout(()=>{
+      const selected=rememberEditorSelection();
+      if(!selected?.text){ selectionTool.hidden=true; return; }
+      const rect=selected.range.getBoundingClientRect();
+      $('#scriptSelectionLabel').textContent=`“${selected.text.slice(0,52)}${selected.text.length>52?'…':''}”`;
+      selectionTool.style.left=`${Math.max(12,Math.min(window.innerWidth-265,rect.left+rect.width/2-125))}px`;
+      selectionTool.style.top=`${Math.max(12,rect.top-52)}px`;
+      selectionTool.hidden=false;
+    },0);
+  });
+  body.addEventListener('keyup',()=>rememberEditorSelection());
+  $('#selectionYesNo').onmousedown=e=>e.preventDefault();
+  $('#selectionYesNo').onclick=makeSelectedQuestion;
+  $('#makeSelectionYesNo').onclick=makeSelectedQuestion;
+  $('#openFieldGuide').onclick=()=>{
+    rememberEditorSelection();
+    const panel=$('#scriptGuidePanel'); panel.hidden=!panel.hidden;
+    $('#openFieldGuide').classList.toggle('on',!panel.hidden);
+  };
+  $('#closeScriptGuide').onclick=()=>{ $('#scriptGuidePanel').hidden=true; $('#openFieldGuide').classList.remove('on'); };
   const updatePreview=()=>{
     const lead=state.leads.find(l=>l.id===scriptClientId);
-    const personalized=personalizeScript(body.value,lead);
-    $('#scriptPreview').innerHTML=esc(personalized).replace(/\{\{([a-zA-Z]+)\}\}/g,'<span class="placeholder">{{$1}}</span>');
+    const preview=$('#scriptPreview');
+    preview.innerHTML=personalizeRichScript(body.innerHTML,lead);
+    wireLiveScriptFields(preview,lead,()=>updatePreview());
   };
   const persistScript=debounce(()=>{
-    active.title=title.value.trim()||'Untitled script'; active.body=body.value; active.updatedAt=Date.now(); save();
+    active.title=title.value.trim()||'Untitled script';
+    active.bodyHtml=sanitizeRichHtml(body.innerHTML);
+    active.body=scriptPlainText(active.bodyHtml);
+    active.updatedAt=Date.now(); save();
     $('#scriptSaveStatus').textContent='Saved';
     const listBtn=document.querySelector(`[data-script-id="${active.id}"] b`); if(listBtn) listBtn.textContent=active.title;
   },350);
   title.oninput=()=>{ $('#scriptSaveStatus').textContent='Saving…'; persistScript(); };
   body.oninput=()=>{ $('#scriptSaveStatus').textContent='Saving…'; updatePreview(); persistScript(); };
   client.onchange=()=>{ scriptClientId=client.value; updatePreview(); };
-  document.querySelectorAll('[data-script-field]').forEach(chip=>chip.onclick=()=>{
-    const token=`{{${chip.dataset.scriptField}}}`;
-    const start=body.selectionStart, end=body.selectionEnd;
-    body.setRangeText(token,start,end,'end'); body.focus(); body.dispatchEvent(new Event('input',{bubbles:true}));
+  document.querySelectorAll('[data-format]').forEach(btn=>btn.onclick=()=>{
+    body.focus(); document.execCommand(btn.dataset.format,false,btn.dataset.value||null);
+    body.dispatchEvent(new Event('input',{bubbles:true}));
   });
+  document.querySelectorAll('[data-block]').forEach(btn=>btn.onclick=()=>{
+    body.focus(); document.execCommand('formatBlock',false,btn.dataset.block);
+    body.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  document.querySelectorAll('[data-script-token]').forEach(chip=>chip.onclick=()=>{
+    const token=chip.dataset.scriptToken;
+    insertEditorToken(token);
+  });
+  $('#scriptDocx').onchange=async e=>{
+    const file=e.target.files[0]; if(!file) return;
+    if(!/\.docx$/i.test(file.name)){ toast('Choose a Microsoft Word .docx file'); e.target.value=''; return; }
+    $('#scriptSaveStatus').textContent='Importing Word document…';
+    try {
+      body.innerHTML=await convertWordScript(file);
+      if((!title.value.trim() || title.value==='New script') && file.name) title.value=file.name.replace(/\.docx$/i,'');
+      body.dispatchEvent(new Event('input',{bubbles:true})); title.dispatchEvent(new Event('input',{bubbles:true}));
+      toast(`Imported ${file.name} with formatting`);
+    } catch(err){
+      $('#scriptSaveStatus').textContent='Import failed';
+      toast('Could not import that Word document');
+    }
+    e.target.value='';
+  };
   $('#copyScript').onclick=async()=>{
     const lead=state.leads.find(l=>l.id===scriptClientId);
-    try { await navigator.clipboard.writeText(personalizeScript(body.value,lead)); toast('Personalized script copied'); }
+    const html=personalizeRichScript(body.innerHTML,lead);
+    const plain=scriptPlainText(html);
+    try {
+      if(window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);
+      else await navigator.clipboard.writeText(plain);
+      toast('Personalized script copied with formatting');
+    }
     catch(e){ toast('Select and copy the preview manually'); }
   };
   $('#deleteScript').onclick=()=>confirmDialog('Delete this script?',`<b>${esc(active.title||'Untitled script')}</b> will be permanently removed.`,()=>{
@@ -2007,6 +2382,61 @@ function stopCallTimer(){
   if (callTimerInterval) clearInterval(callTimerInterval);
   callTimerInterval = null;
 }
+function callScriptDockHtml(lead){
+  const scripts=scriptCollection();
+  if(!activeScriptId && scripts.length) activeScriptId=scripts[0].id;
+  if(activeScriptId && !scripts.some(s=>s.id===activeScriptId)) activeScriptId=scripts[0]?.id||null;
+  const active=scripts.find(s=>s.id===activeScriptId);
+  return `<aside class="call-script-dock" id="callScriptDock" aria-hidden="true">
+    <div class="call-script-dock-head">
+      <div class="script-mark">S</div>
+      <div><strong>Live call script</strong><span>Personalized for ${esc(fullName(lead))}</span></div>
+      <button class="close" id="closeCallScript" title="Close script">&times;</button>
+    </div>
+    ${scripts.length?`
+      <div class="call-script-dock-tools">
+        <select id="callScriptSelect" aria-label="Choose script">${scripts.map(s=>`<option value="${s.id}" ${s.id===activeScriptId?'selected':''}>${esc(s.title||'Untitled script')}</option>`).join('')}</select>
+        <button class="btn ghost sm" id="editScriptLibrary">Edit library</button>
+      </div>
+      <div class="call-script-dock-body"><div class="script-preview" id="callScriptPreview">${active?personalizeRichScript(active.bodyHtml||plainToRich(active.body),lead):''}</div></div>
+      <div class="call-script-dock-foot"><span class="cell-sub" style="flex:1;">Client fields update the script live.</span><button class="btn" id="copyCallScript">Copy script</button></div>
+    `:`
+      <div class="call-script-dock-body"><div class="call-script-empty"><div><strong>No scripts yet</strong><div>Import your Word document or create a script in the library.</div><button class="btn" id="emptyScriptLibrary" style="margin-top:16px;">Open Scripts</button></div></div></div>
+    `}
+  </aside>`;
+}
+function updateCallScriptPreview(lead){
+  const preview=$('#callScriptPreview'); if(!preview) return;
+  const active=scriptCollection().find(s=>s.id===activeScriptId);
+  preview.innerHTML=active?personalizeRichScript(active.bodyHtml||plainToRich(active.body),lead):'';
+  wireLiveScriptFields(preview,lead,()=>updateCallScriptPreview(lead));
+}
+function wireCallScriptDock(lead){
+  const dock=$('#callScriptDock');
+  dock.inert=true;
+  const open=()=>{ scriptClientId=lead.id; dock.inert=false; $('#drawer').classList.add('script-open'); dock.classList.add('open'); dock.setAttribute('aria-hidden','false'); };
+  const close=()=>{ dock.classList.remove('open'); $('#drawer').classList.remove('script-open'); dock.setAttribute('aria-hidden','true'); dock.inert=true; };
+  $('#qScripts').onclick=open;
+  $('#closeCallScript').onclick=close;
+  const select=$('#callScriptSelect');
+  if(select) select.onchange=()=>{ activeScriptId=select.value; updateCallScriptPreview(lead); };
+  updateCallScriptPreview(lead);
+  const openLibrary=()=>{ scriptClientId=lead.id; closeDrawer(); go('scripts'); };
+  const edit=$('#editScriptLibrary'); if(edit) edit.onclick=openLibrary;
+  const empty=$('#emptyScriptLibrary'); if(empty) empty.onclick=openLibrary;
+  const copy=$('#copyCallScript');
+  if(copy) copy.onclick=async()=>{
+    const active=scriptCollection().find(s=>s.id===activeScriptId);
+    if(!active) return;
+    const html=personalizeRichScript(active.bodyHtml||plainToRich(active.body),lead);
+    const plain=scriptPlainText(html);
+    try {
+      if(window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);
+      else await navigator.clipboard.writeText(plain);
+      toast('Personalized script copied');
+    } catch(e){ toast('Select and copy the script manually'); }
+  };
+}
 let googlePlacesPromise = null;
 function loadGooglePlaces(){
   if (window.google?.maps?.importLibrary) return Promise.resolve();
@@ -2113,13 +2543,19 @@ function isEmptyLead(l){ return !(l.firstName||l.lastName||l.phone||l.email); }
 function closeDrawer(){
   stopCallTimer(); callTimerStartedAt = null; callTimerElapsed = 0;
   if (openLeadId){ const l=state.leads.find(x=>x.id===openLeadId); if (l && isEmptyLead(l) && (!l.activity||l.activity.length===0) && !l.scratch){ state.leads=state.leads.filter(x=>x.id!==l.id); save(); } }
-  $('#overlay').classList.remove('open'); $('#drawer').classList.remove('open'); openLeadId=null; render();
+  $('#overlay').classList.remove('open'); $('#drawer').classList.remove('open','script-open'); openLeadId=null; render();
 }
 $('#overlay').onclick = closeDrawer;
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && openLeadId && !$('#modal').classList.contains('open')) closeDrawer(); });
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape' || !openLeadId || $('#modal').classList.contains('open')) return;
+  const dock=$('#callScriptDock');
+  if(dock?.classList.contains('open')){ $('#closeCallScript').click(); return; }
+  closeDrawer();
+});
 
 function renderDrawer(lead){
   const d = $('#drawer');
+  d.classList.remove('script-open');
   const inF = (key,label,type='text',ph='')=>`<div class="field"><label>${label}</label><input data-f="${key}" type="${type}" value="${esc(lead[key]||'')}" placeholder="${ph}"></div>`;
   const inFull = (key,label,type='text',ph='')=>`<div class="field full"><label>${label}</label><input data-f="${key}" type="${type}" value="${esc(lead[key]||'')}" placeholder="${ph}"></div>`;
   const taFull = (key,label,ph='')=>`<div class="field full"><label>${label}</label><textarea data-f="${key}" rows="2" placeholder="${ph}">${esc(lead[key]||'')}</textarea></div>`;
@@ -2273,6 +2709,12 @@ function renderDrawer(lead){
               ${taFull('medications','Medications')}
               ${taFull('health','Health conditions / notes')}
             </div>
+            <div class="health-screening">
+              <div class="health-screening-head"><b>Script health screening</b><span>Saved from interactive script questions</span></div>
+              <div class="health-screening-list" id="healthScreeningList">
+                ${Object.entries(lead.healthAnswers||{}).length ? Object.entries(lead.healthAnswers).map(([key,value])=>`<div><span>${esc(lead.healthAnswerLabels?.[key]||HEALTH_ANSWER_LABELS[key]||key.replace(/([A-Z])/g,' $1'))}</span><b class="${value==='Yes'?'yes':'no'}">${esc(value)}</b></div>`).join('') : '<div class="health-screening-empty">No script answers recorded yet.</div>'}
+              </div>
+            </div>
           </div>
           <div class="drawer-section">
             <h4>Notes</h4>
@@ -2285,11 +2727,12 @@ function renderDrawer(lead){
       <span class="autosave-note" style="flex:1;"><span class="d"></span> All changes save automatically</span>
       <button class="btn ghost" onclick="closeDrawer()">Close</button>
       <button class="btn danger" id="delLead">Delete</button>
-    </div>`;
+    </div>
+    ${callScriptDockHtml(lead)}`;
 
   const bookHandler = ()=> apptModal(null, todayStr, lead.id);
   $('#qBook').onclick = bookHandler;
-  $('#qScripts').onclick = ()=>{ scriptClientId=lead.id; closeDrawer(); go('scripts'); };
+  wireCallScriptDock(lead);
   $('#addAppt').onclick = bookHandler;
   d.querySelectorAll('.appt-row').forEach(r=> r.onclick = ()=>{ const a=state.appointments.find(x=>x.id===r.dataset.appt); if(a) apptModal(a); });
 
@@ -2395,6 +2838,8 @@ function renderDrawer(lead){
   const saveFields = debounce(()=>{ d.querySelectorAll('[data-f]').forEach(inp=> lead[inp.dataset.f] = (inp.value||'').trim()); save(); }, 350);
   d.querySelectorAll('[data-f]').forEach(inp=>{
     inp.addEventListener('input', ()=>{
+      lead[inp.dataset.f] = (inp.value||'').trim();
+      if ($('#callScriptDock')?.classList.contains('open')) updateCallScriptPreview(lead);
       saveFields();
       if (inp.dataset.f==='firstName' || inp.dataset.f==='lastName'){
         const fn=d.querySelector('[data-f="firstName"]').value, ln=d.querySelector('[data-f="lastName"]').value;
