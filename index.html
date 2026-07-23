@@ -192,6 +192,30 @@
   .cal-evt { font-size: 11px; font-weight: 600; padding: 3px 6px; border-radius: 5px; background: var(--s-appointment-bg); color: var(--s-appointment); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-evt .t { font-variant-numeric: tabular-nums; opacity: .8; }
 
+  /* ---------- week (time-grid) calendar ---------- */
+  .cal-toggle { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; }
+  .cal-toggle button { background: var(--surface); color: var(--ink-2); border: 0; padding: 7px 15px; font-weight: 600; font-size: 13px; }
+  .cal-toggle button:hover { background: var(--surface-2); }
+  .cal-toggle button.on { background: var(--accent); color: #fff; }
+  .wk-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  .wk-inner { min-width: 760px; }
+  .wk-headrow { display: grid; grid-template-columns: 58px repeat(7, minmax(0,1fr)); border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 3; }
+  .wk-dayhead { text-align: center; padding: 9px 4px; border-left: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .wk-dayhead .wk-dow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); }
+  .wk-dayhead .wk-dnum { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+  .wk-dayhead.today .wk-dnum { background: var(--accent); color: #fff; border-radius: 50%; }
+  .wk-body { display: grid; grid-template-columns: 58px repeat(7, minmax(0,1fr)); }
+  .wk-gutter { position: relative; }
+  .wk-hour { position: absolute; right: 7px; transform: translateY(-7px); font-size: 10.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wk-col { position: relative; border-left: 1px solid var(--border); }
+  .wk-col.today { background: var(--accent-soft); }
+  .wk-line { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--border); }
+  .wk-evt { position: absolute; background: var(--s-appointment-bg); border: 1px solid var(--s-appointment); border-left: 3px solid var(--s-appointment); border-radius: 5px; padding: 3px 7px; overflow: hidden; cursor: pointer; box-sizing: border-box; }
+  .wk-evt:hover { box-shadow: var(--shadow); z-index: 5; filter: brightness(1.04); }
+  .wk-evt-t { font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--s-appointment); }
+  .wk-evt-title { font-size: 12px; font-weight: 650; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wk-evt-sub { font-size: 10.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   /* ---------- import ---------- */
   .import-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-bottom: 18px; }
   .import-step h3 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 9px; }
@@ -210,7 +234,7 @@
   /* ---------- drawer ---------- */
   .overlay { position: fixed; inset: 0; background: rgba(19,42,38,.4); backdrop-filter: blur(2px); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
   .overlay.open { opacity: 1; pointer-events: auto; }
-  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(840px, 96vw); max-width: 96vw; background: var(--surface); box-shadow: var(--shadow-lg); z-index: 51; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(940px, 96vw); max-width: 96vw; background: var(--surface); box-shadow: var(--shadow-lg); z-index: 51; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; }
   .drawer.open { transform: translateX(0); }
   .drawer-head { padding: 20px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 13px; }
   .drawer-head .avatar { width: 44px; height: 44px; font-size: 16px; }
@@ -250,12 +274,12 @@
   .qbtn.accent { background: var(--accent); color: #fff; border-color: transparent; }
   .qbtn.accent:hover { background: var(--accent-strong); }
 
-  .drawer-cols { display: grid; grid-template-columns: 1.02fr .98fr; gap: 4px 28px; }
+  .drawer-cols { display: grid; grid-template-columns: 1.18fr .82fr; gap: 4px 28px; }
   .drawer-cols .drawer-section:first-child { margin-top: 0; }
   .dispo-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
   .dispo { border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink-2); border-radius: 20px; padding: 5px 11px; font-size: 12px; font-weight: 600; }
   .dispo:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
-  .scratch { width: 100%; min-height: 128px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 11px 12px; background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 13.5px; line-height: 1.55; resize: vertical; outline: none; }
+  .scratch { width: 100%; min-height: 300px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 13px 14px; background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 15px; line-height: 1.6; resize: vertical; outline: none; }
   .scratch:focus { border-color: var(--accent); background: var(--surface); }
   .autosave-note { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); }
   .autosave-note .d { width: 6px; height: 6px; border-radius: 50%; background: var(--s-won); }
@@ -422,6 +446,7 @@ const FIELDS = [
   { key: 'email',          label: 'Email' },
   { key: 'dob',            label: 'Date of Birth' },
   { key: 'age',            label: 'Age' },
+  { key: 'gender',         label: 'Gender' },
   { key: 'address',        label: 'Address' },
   { key: 'city',           label: 'City' },
   { key: 'state',          label: 'State' },
@@ -443,6 +468,7 @@ const SYNONYMS = {
   email:     ['email','e-mail','email address','emailaddress','mail'],
   dob:       ['dob','date of birth','birthdate','birth date','birthday','d.o.b','dateofbirth'],
   age:       ['age'],
+  gender:    ['gender','sex','m/f','gender/sex'],
   address:   ['address','street','street address','address1','mailing address'],
   city:      ['city','town'],
   state:     ['state','st','province','region','state/province'],
@@ -836,7 +862,109 @@ function wirePipeline(){
 
 /* ========================= calendar ========================= */
 let calRef = new Date();
-function viewCalendar(){
+let calMode = 'week';
+let _wkMinH = 8, _wkHH = 54;
+
+function calStartOfWeek(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return x; }
+function calFmtDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function calToMin(t){ const m=/^(\d{1,2}):(\d{2})/.exec(t||''); return m ? (+m[1])*60 + (+m[2]) : 9*60; }
+function calFmtHour(h){ const ap=h<12?'AM':'PM'; let hh=h%12; if(hh===0) hh=12; return `${hh} ${ap}`; }
+function calFmtTime12(t){ const mn=calToMin(t); let h=Math.floor(mn/60), m=mn%60; const ap=h<12?'AM':'PM'; let hh=h%12; if(hh===0) hh=12; return `${hh}:${String(m).padStart(2,'0')} ${ap}`; }
+function calLayoutDay(appts){
+  const DUR=50;
+  const evs = appts.map(a=>({ a, start:calToMin(a.time), end:calToMin(a.time)+DUR })).sort((x,y)=> x.start-y.start);
+  let cols=[], group=[], groupEnd=-1; const res=[];
+  const flush=()=>{ const n=cols.length; group.forEach(e=> res.push({ e, col:e._c, cols:n })); cols=[]; group=[]; };
+  evs.forEach(e=>{
+    if (group.length && e.start >= groupEnd) flush();
+    let placed=false;
+    for (let c=0;c<cols.length;c++){ if (cols[c][cols[c].length-1].end <= e.start){ cols[c].push(e); e._c=c; placed=true; break; } }
+    if (!placed){ cols.push([e]); e._c=cols.length-1; }
+    group.push(e); groupEnd=Math.max(groupEnd, e.end);
+  });
+  flush();
+  return res;
+}
+function calHeadHtml(title){
+  const nextLbl = calMode==='week' ? 'week' : 'month';
+  return `
+  <div class="cal-head">
+    <h2>${title}</h2>
+    <div class="cal-nav">
+      <button class="icon-btn" id="calPrev" title="Previous ${nextLbl}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="icon-btn" id="calToday" style="width:auto;padding:0 12px;font-weight:600;font-size:13px;">Today</button>
+      <button class="icon-btn" id="calNext" title="Next ${nextLbl}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <div class="cal-toggle">
+      <button class="${calMode==='week'?'on':''}" data-mode="week">Week</button>
+      <button class="${calMode==='month'?'on':''}" data-mode="month">Month</button>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn" id="newApptBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>New appointment</button>
+  </div>`;
+}
+function viewCalendar(){ return calMode==='week' ? viewCalWeek() : viewCalMonth(); }
+
+function viewCalWeek(){
+  const ws = calStartOfWeek(calRef);
+  const days = Array.from({length:7}, (_,i)=>{ const d=new Date(ws); d.setDate(ws.getDate()+i); return d; });
+  const dayStrs = days.map(calFmtDate);
+  const todayStr = calFmtDate(new Date());
+  const weekAppts = state.appointments.filter(a=> dayStrs.includes(a.date));
+  let minH=8, maxH=19;
+  weekAppts.forEach(a=>{ const h=Math.floor(calToMin(a.time)/60); if(h<minH) minH=h; if(h+1>maxH) maxH=h+1; });
+  minH=Math.max(0,minH); maxH=Math.min(24, Math.max(maxH, minH+6));
+  _wkMinH=minH; _wkHH=54;
+  const HH=54;
+  const hours=[]; for(let h=minH;h<maxH;h++) hours.push(h);
+  const bodyH=(maxH-minH)*HH;
+  const dowShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const label = (()=>{ const a=days[0], b=days[6];
+    const mA=a.toLocaleDateString(undefined,{month:'short'}), mB=b.toLocaleDateString(undefined,{month:'short'});
+    return a.getMonth()===b.getMonth()
+      ? `${mA} ${a.getDate()} – ${b.getDate()}, ${b.getFullYear()}`
+      : `${mA} ${a.getDate()} – ${mB} ${b.getDate()}, ${b.getFullYear()}`;
+  })();
+
+  const colHtml = days.map((d,di)=>{
+    const ds=dayStrs[di];
+    const laid=calLayoutDay(weekAppts.filter(a=>a.date===ds));
+    const evHtml=laid.map(({e,col,cols})=>{
+      const a=e.a; const l=state.leads.find(x=>x.id===a.leadId);
+      const top=((e.start - minH*60)/60)*HH;
+      const height=Math.max(26, ((e.end-e.start)/60)*HH - 3);
+      const w=100/cols, left=col*w;
+      return `<div class="wk-evt" data-appt="${a.id}" style="top:${top}px;height:${height}px;left:calc(${left}% + 2px);width:calc(${w}% - 4px);">
+        <div class="wk-evt-t">${calFmtTime12(a.time)}</div>
+        <div class="wk-evt-title">${esc(l?fullName(l):(a.title||'Appointment'))}</div>
+        ${l&&a.title?`<div class="wk-evt-sub">${esc(a.title)}</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="wk-col ${ds===todayStr?'today':''}" data-date="${ds}" style="height:${bodyH}px">
+      ${hours.map((h,hi)=>`<div class="wk-line" style="top:${hi*HH}px"></div>`).join('')}
+      ${evHtml}
+    </div>`;
+  }).join('');
+
+  return calHeadHtml(label) + `
+  <div class="wk-wrap">
+    <div class="wk-inner">
+      <div class="wk-headrow">
+        <div class="wk-gutter-h"></div>
+        ${days.map((d,di)=>`<div class="wk-dayhead ${dayStrs[di]===todayStr?'today':''}"><span class="wk-dow">${dowShort[d.getDay()]}</span><span class="wk-dnum">${d.getDate()}</span></div>`).join('')}
+      </div>
+      <div class="wk-body">
+        <div class="wk-gutter" style="height:${bodyH}px">
+          ${hours.map((h,hi)=>`<div class="wk-hour" style="top:${hi*HH}px">${calFmtHour(h)}</div>`).join('')}
+        </div>
+        ${colHtml}
+      </div>
+    </div>
+  </div>`;
+}
+
+function viewCalMonth(){
   const y = calRef.getFullYear(), m = calRef.getMonth();
   const first = new Date(y,m,1); const startDow = first.getDay();
   const daysInMonth = new Date(y,m+1,0).getDate();
@@ -858,36 +986,42 @@ function viewCalendar(){
     return `<div class="cal-cell ${c.other?'other':''} ${dateStr===todayStr?'today':''}" data-date="${dateStr}">
       <span class="cal-date">${c.d}</span>
       ${evts.slice(0,3).map(a=>{ const l=state.leads.find(x=>x.id===a.leadId);
-        return `<div class="cal-evt" title="${esc(a.title)}" data-appt="${a.id}"><span class="t">${esc(a.time||'')}</span> ${esc(l?fullName(l):a.title)}</div>`; }).join('')}
+        return `<div class="cal-evt" title="${esc(a.title)}" data-appt="${a.id}"><span class="t">${calFmtTime12(a.time)}</span> ${esc(l?fullName(l):a.title)}</div>`; }).join('')}
       ${evts.length>3?`<div class="cell-sub" style="font-size:10.5px;padding-left:4px;">+${evts.length-3} more</div>`:''}
     </div>`;
   }).join('');
 
-  return `
-  <div class="cal-head">
-    <h2>${monthName}</h2>
-    <div class="cal-nav">
-      <button class="icon-btn" id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <button class="icon-btn" id="calToday" style="width:auto;padding:0 12px;font-weight:600;font-size:13px;">Today</button>
-      <button class="icon-btn" id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
-    </div>
-    <div style="flex:1"></div>
-    <button class="btn" id="newApptBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>New appointment</button>
-  </div>
+  return calHeadHtml(monthName) + `
   <div class="cal-grid">
     ${dow.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
     ${cellHtml}
   </div>`;
 }
+
 function wireCalendar(){
-  $('#calPrev').onclick = ()=>{ calRef.setMonth(calRef.getMonth()-1); render(); };
-  $('#calNext').onclick = ()=>{ calRef.setMonth(calRef.getMonth()+1); render(); };
-  $('#calToday').onclick = ()=>{ calRef = new Date(); render(); };
+  const prev=$('#calPrev'), next=$('#calNext'), today=$('#calToday');
+  if (prev) prev.onclick = ()=>{ if(calMode==='week') calRef.setDate(calRef.getDate()-7); else calRef.setMonth(calRef.getMonth()-1); render(); };
+  if (next) next.onclick = ()=>{ if(calMode==='week') calRef.setDate(calRef.getDate()+7); else calRef.setMonth(calRef.getMonth()+1); render(); };
+  if (today) today.onclick = ()=>{ calRef = new Date(); render(); };
   $('#newApptBtn').onclick = ()=> apptModal(null, new Date().toISOString().slice(0,10));
-  document.querySelectorAll('.cal-cell').forEach(c=> c.onclick = e=>{
-    if (e.target.closest('.cal-evt')) { const id = e.target.closest('.cal-evt').dataset.appt; const a = state.appointments.find(x=>x.id===id); apptModal(a); return; }
-    apptModal(null, c.dataset.date);
-  });
+  document.querySelectorAll('.cal-toggle button').forEach(b=> b.onclick = ()=>{ calMode = b.dataset.mode; render(); });
+
+  if (calMode==='week'){
+    document.querySelectorAll('.wk-col').forEach(col=> col.onclick = e=>{
+      const evEl = e.target.closest('.wk-evt');
+      if (evEl){ const a=state.appointments.find(x=>x.id===evEl.dataset.appt); if(a) apptModal(a); return; }
+      const rect = col.getBoundingClientRect();
+      let mins = _wkMinH*60 + ((e.clientY - rect.top)/_wkHH)*60;
+      mins = Math.max(0, Math.min(24*60-15, Math.round(mins/15)*15));
+      const hh=String(Math.floor(mins/60)).padStart(2,'0'), mm=String(mins%60).padStart(2,'0');
+      apptModal(null, col.dataset.date, '', `${hh}:${mm}`);
+    });
+  } else {
+    document.querySelectorAll('.cal-cell').forEach(c=> c.onclick = e=>{
+      if (e.target.closest('.cal-evt')) { const id = e.target.closest('.cal-evt').dataset.appt; const a = state.appointments.find(x=>x.id===id); apptModal(a); return; }
+      apptModal(null, c.dataset.date);
+    });
+  }
 }
 
 /* ========================= import ========================= */
@@ -1165,9 +1299,10 @@ function renderDrawer(lead){
               ${inF('email','Email','email')}
               ${inF('dob','Date of birth','text','MM/DD/YYYY')}
               ${inF('age','Age')}
+              ${selF('gender','Gender',['Male','Female','Other'])}
+              ${inF('state','State')}
               ${inFull('address','Street address')}
               ${inF('city','City')}
-              ${inF('state','State')}
               ${inF('zip','Zip')}
               ${inFull('leadSource','Lead source')}
             </div>
@@ -1287,9 +1422,9 @@ function confirmDialog(title, msg, onYes, yesLabel='Delete', danger=true){
      <button class="btn ${danger?'danger':''}" id="confirmYes">${yesLabel}</button>`);
   $('#confirmYes').onclick = ()=>{ closeModal(); onYes(); };
 }
-function apptModal(appt, presetDate, presetLeadId){
+function apptModal(appt, presetDate, presetLeadId, presetTime){
   const isNew = !appt;
-  const a = appt || { id:uid(), date:presetDate||new Date().toISOString().slice(0,10), time:'10:00', title:'', leadId:presetLeadId||'', notes:'' };
+  const a = appt || { id:uid(), date:presetDate||new Date().toISOString().slice(0,10), time:presetTime||'10:00', title:'', leadId:presetLeadId||'', notes:'' };
   const leadOpts = `<option value="">&mdash; No client &mdash;</option>` + state.leads.slice().sort((x,y)=>fullName(x).localeCompare(fullName(y))).map(l=>`<option value="${l.id}" ${a.leadId===l.id?'selected':''}>${esc(fullName(l))}</option>`).join('');
   openModal(isNew?'New appointment':'Edit appointment', `
     <div class="field-grid">
